@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            objectClass="org.eclipse.core.resources.IFile"
+            id="RAML2SpringBootPlugin.contribution"
+            nameFilter="*.raml">
+         <action
+               label="RAML to Spring Boot"
+               class="com.easyapp.raml2springbootplugin.popup.actions.RAML2SpringBootAction"
+               enablesFor="1"
+               id="RAML2SpringBootPlugin.GenerateAction">
+         </action>
+      </objectContribution>
+   </extension>
+</plugin>
