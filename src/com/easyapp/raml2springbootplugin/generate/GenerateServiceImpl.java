@@ -20,7 +20,7 @@ public class GenerateServiceImpl {
 			return "";
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> "final " + generator.getJavaType(uriParam.type()) + " " + uriParam.name())
+					.map(uriParam -> "final " + generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -30,7 +30,7 @@ public class GenerateServiceImpl {
 			return "";
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> "final " + generator.getJavaType(queryParam.type()) + " " + queryParam.name())
+					.map(queryParam -> "final " + generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -47,7 +47,7 @@ public class GenerateServiceImpl {
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
 			variables.add("final "
 					+ generator.getJavaType(method.body().isEmpty() ? "String"
-							: (method.body().get(0).type().isEmpty() ? "String" : method.body().get(0).type()))
+							: (method.body().get(0).type().isEmpty() ? "String" : method.body().get(0).type()), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 					+ " requestBody");
 		}
 
@@ -64,7 +64,7 @@ public class GenerateServiceImpl {
 
 			final String responseType = generator
 					.getJavaType(method.responses().stream().filter(response -> ("200").equals(response.code().value()))
-							.map(response -> response.body().get(0).type()).findFirst().orElse(apiTitle + "Response"));
+							.map(response -> response.body().get(0).type()).findFirst().orElse("string"), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			methods.append(CodeGenerator.INDENT1).append("@Override").append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")

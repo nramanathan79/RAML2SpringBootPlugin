@@ -65,8 +65,9 @@ public class GenerateRestController {
 			generator.addImport("org.springframework.web.bind.annotation.PathVariable");
 			return uriParameters.stream()
 					.map(uriParam -> "@PathVariable(name = \"" + uriParam.name() + "\", required = "
-							+ String.valueOf(uriParam.required()) + ") final " + generator.getJavaType(uriParam.type())
-							+ " " + uriParam.name())
+							+ String.valueOf(uriParam.required()) + ") final "
+							+ generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -81,7 +82,9 @@ public class GenerateRestController {
 							+ String.valueOf(queryParam.required())
 							+ (queryParam.defaultValue() != null && queryParam.defaultValue().trim().length() > 0
 									? ", defaultValue = \"" + queryParam.defaultValue() + "\"" : "")
-							+ ") final " + generator.getJavaType(queryParam.type()) + " " + queryParam.name())
+							+ ") final "
+							+ generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -97,10 +100,14 @@ public class GenerateRestController {
 
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
 			generator.addImport("org.springframework.web.bind.annotation.RequestBody");
-			variables.add("@RequestBody final "
-					+ generator.getJavaType(method.body().isEmpty() ? "String"
-							: (method.body().get(0).type().isEmpty() ? "String" : method.body().get(0).type()))
-					+ " requestBody");
+			variables
+					.add("@RequestBody final "
+							+ generator.getJavaType(
+									method.body().isEmpty() ? "String"
+											: (method.body().get(0).type().isEmpty() ? "String"
+													: method.body().get(0).type()),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+							+ " requestBody");
 		}
 
 		if (!("").equals(requestParams)) {
@@ -143,16 +150,20 @@ public class GenerateRestController {
 
 			final String methodName = method.method() + resource.displayName().value().replaceAll(" ", "");
 
-			final String responseType = generator
-					.getJavaType(method.responses().stream().filter(response -> ("200").equals(response.code().value()))
-							.map(response -> response.body().get(0).type()).findFirst().orElse(apiTitle + "Response"));
+			final String responseType = generator.getJavaType(
+					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			final String throwsClause = " throws " + method.responses().stream()
 					.filter(response -> !("200").equals(response.code().value())).map(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
+						final String errorReturnType = generator.getJavaType(response.body().get(0).type(),
+								CodeGenerator.ERROR_TRANSPORT_PACKAGE);
 
-						exceptionMap.put(response.code().value(), exceptionClassName);
+						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
 						generator.addImport(basePackage + ".exception." + exceptionClassName);
+						generator.addImport(basePackage + ".error." + errorReturnType);
 
 						return exceptionClassName;
 					}).collect(Collectors.joining(", "));
@@ -201,53 +212,22 @@ public class GenerateRestController {
 
 		exceptionMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(exception -> {
 			final StringBuffer methods = new StringBuffer();
+			final String[] exceptionValues = exception.getValue().split("~");
 
 			methods.append(CodeGenerator.INDENT1).append("@ExceptionHandler(").append(exception.getValue())
 					.append(".class)").append(CodeGenerator.NEWLINE);
 			generator.addImport("org.springframework.web.bind.annotation.ExceptionHandler");
 
-			methods.append(CodeGenerator.INDENT1).append("public ResponseEntity<ErrorResponse> when")
-					.append(exception.getValue()).append("(final ").append(exception.getValue()).append(" exception) {")
-					.append(CodeGenerator.NEWLINE);
+			methods.append(CodeGenerator.INDENT1).append("public ResponseEntity<").append(exceptionValues[1])
+					.append("> when").append(exceptionValues[0]).append("(final ").append(exceptionValues[0])
+					.append(" exception) {").append(CodeGenerator.NEWLINE);
 			generator.addImport("org.springframework.http.ResponseEntity");
-			generator.addImport(basePackage + ".error.ErrorResponse");
 
-			methods.append(CodeGenerator.INDENT2).append("final Error error = new Error();")
+			methods.append(CodeGenerator.INDENT2).append("final ").append(exceptionValues[1])
+					.append(" errorResponse = new ").append(exceptionValues[1]).append("();")
 					.append(CodeGenerator.NEWLINE);
-			generator.addImport(basePackage + ".error.Error");
-
-			final String httpStatusPhrase = GeneratorUtil.getHttpStatusPhrase(exception.getKey());
-
-			methods.append(CodeGenerator.INDENT2).append("error.setCode(\"").append(exception.getKey()).append("\");")
+			methods.append(CodeGenerator.INDENT2).append("// TODO: Set Error Response.").append(CodeGenerator.NEWLINE)
 					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("error.setDetail(exception.getMessage());")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("error.setTitle(\"").append(httpStatusPhrase).append("\");")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("error.setId(\"").append(exception.getValue()).append("\");")
-					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
-
-			methods.append(CodeGenerator.INDENT2).append("final Context context = new Context();")
-					.append(CodeGenerator.NEWLINE);
-			generator.addImport(basePackage + ".error.Context");
-
-			methods.append(CodeGenerator.INDENT2).append("context.setArgName(\"").append(exception.getKey())
-					.append("\");").append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("context.setArgValue(\"").append(httpStatusPhrase)
-					.append("\");").append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
-
-			methods.append(CodeGenerator.INDENT2).append("final ErrorResponse errorResponse = new ErrorResponse();")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("errorResponse.setSuccess(false);")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("errorResponse.setErrors(Arrays.asList(error));")
-					.append(CodeGenerator.NEWLINE);
-			generator.addImport("java.util.Arrays");
-
-			methods.append(CodeGenerator.INDENT2).append("errorResponse.setMessage(exception.getMessage());")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("errorResponse.setContext(Arrays.asList(context));")
-					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
 
 			methods.append(CodeGenerator.INDENT2).append("return new ResponseEntity<>(errorResponse, HttpStatus.")
 					.append(GeneratorUtil.getHttpStatus(exception.getKey()).name()).append(");")

@@ -20,7 +20,8 @@ public class GenerateTransport {
 	final Map<String, Set<TypeDeclaration>> transportTypes = new HashMap<>();
 
 	private void addToMap(final TypeDeclaration body, final String responseType) {
-		final String key = responseType == null || "200".equals(responseType) ? "transport" : "error";
+		final String key = responseType == null || "200".equals(responseType) ? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE
+				: CodeGenerator.ERROR_TRANSPORT_PACKAGE;
 
 		Set<TypeDeclaration> types = transportTypes.get(key);
 
@@ -35,9 +36,9 @@ public class GenerateTransport {
 	}
 
 	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
-		final CodeGenerator generator = new CodeGenerator(sourceDirectory, basePackage + "." + transportPackageName, null, false,
-				"object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
-				Arrays.asList("Serializable"), transportPackageName);
+		final CodeGenerator generator = new CodeGenerator(sourceDirectory, basePackage + "." + transportPackageName,
+				null, false, "object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
+				Arrays.asList("Serializable"));
 		generator.addImport("java.io.Serializable");
 
 		final StringBuffer blocks = new StringBuffer();
@@ -64,11 +65,11 @@ public class GenerateTransport {
 			members.add(property);
 		});
 
-		generator.addMembers(members);
+		generator.addMembers(members, transportPackageName);
 
 		generator.writeCode();
 	}
-	
+
 	private void getTransportTypes(final Resource resource) {
 		resource.methods().stream().forEach(method -> {
 			method.body().stream().filter(body -> !body.type().contains("-")).forEach(body -> addToMap(body, null));
@@ -78,7 +79,7 @@ public class GenerateTransport {
 						.forEach(body -> addToMap(body, response.code().value()));
 			});
 		});
-		
+
 		resource.resources().stream().forEach(subResource -> getTransportTypes(subResource));
 	}
 

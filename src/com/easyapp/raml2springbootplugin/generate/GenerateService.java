@@ -19,7 +19,9 @@ public class GenerateService {
 			return "";
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> "final " + generator.getJavaType(uriParam.type()) + " " + uriParam.name())
+					.map(uriParam -> "final "
+							+ generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -29,7 +31,9 @@ public class GenerateService {
 			return "";
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> "final " + generator.getJavaType(queryParam.type()) + " " + queryParam.name())
+					.map(queryParam -> "final "
+							+ generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -44,10 +48,14 @@ public class GenerateService {
 		}
 
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
-			variables.add("final "
-					+ generator.getJavaType(method.body().isEmpty() ? "String"
-							: (method.body().get(0).type().isEmpty() ? "String" : method.body().get(0).type()))
-					+ " requestBody");
+			variables
+					.add("final "
+							+ generator.getJavaType(
+									method.body().isEmpty() ? "String"
+											: (method.body().get(0).type().isEmpty() ? "string"
+													: method.body().get(0).type()),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+							+ " requestBody");
 		}
 
 		if (!("").equals(requestParams)) {
@@ -61,9 +69,10 @@ public class GenerateService {
 		resource.methods().stream().forEach(method -> {
 			final StringBuffer methods = new StringBuffer();
 
-			final String responseType = generator
-					.getJavaType(method.responses().stream().filter(response -> ("200").equals(response.code().value()))
-							.map(response -> response.body().get(0).type()).findFirst().orElse(apiTitle + "Response"));
+			final String responseType = generator.getJavaType(
+					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
 					.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")

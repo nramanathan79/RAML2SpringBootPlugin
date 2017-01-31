@@ -23,15 +23,16 @@ public class CodeGenerator {
 	public static final String INDENT2 = "\t\t";
 	public static final String INDENT3 = "\t\t\t";
 	public static final String INDENT4 = "\t\t\t\t";
+	public static final String DEFAULT_TRANSPORT_PACKAGE = "transport";
+	public static final String ERROR_TRANSPORT_PACKAGE = "error";
 
 	private final String packageName;
-	private final String transportPackageName;
 	private final Path codeFilePath;
 	private final Map<String, Set<String>> imports = new HashMap<>();
 	private final StringBuffer codeBlock = new StringBuffer();
 	private final List<String> codeBlocks = new ArrayList<>();
 
-	private String getJavaPrimitiveType(final String strippedFieldType) {
+	private String getJavaPrimitiveType(final String strippedFieldType, final String transportPackageName) {
 		if ("string".equals(strippedFieldType) || "any".equals(strippedFieldType)) {
 			return "String";
 		} else if ("number".equals(strippedFieldType)) {
@@ -61,27 +62,21 @@ public class CodeGenerator {
 		}
 	}
 
-	public String getJavaType(final String fieldType) {
+	public String getJavaType(final String fieldType, final String transportPackageName) {
 		final String strippedFieldType = fieldType == null ? "" : fieldType.replaceAll("\\[\\]", "");
 
 		if (strippedFieldType.equals(fieldType)) {
-			return getJavaPrimitiveType(strippedFieldType);
+			return getJavaPrimitiveType(strippedFieldType, transportPackageName);
 		} else {
 			addImport("java.util.List");
-			return "List<" + getJavaPrimitiveType(strippedFieldType) + ">";
+			return "List<" + getJavaPrimitiveType(strippedFieldType, transportPackageName) + ">";
 		}
-	}
-
-	public CodeGenerator(final String sourceDirectory, final String packageName, final List<String> classAnnotations, final boolean isInterface,
-			final String className, final String extendsFrom, final List<String> implementsList) {
-		this(sourceDirectory, packageName, classAnnotations, isInterface, className, extendsFrom, implementsList, "transport");
 	}
 
 	public CodeGenerator(final String sourceDirectory, final String packageName, final List<String> classAnnotations,
 			final boolean isInterface, final String className, final String extendsFrom,
-			final List<String> implementsList, final String transportPackageName) {
+			final List<String> implementsList) {
 		this.packageName = packageName;
-		this.transportPackageName = transportPackageName;
 
 		final File directory = new File(sourceDirectory + File.separator + packageName.replace(".", File.separator));
 
@@ -145,12 +140,12 @@ public class CodeGenerator {
 		}
 	}
 
-	public void addMembers(final Set<TypeDeclaration> members) {
+	public void addMembers(final Set<TypeDeclaration> members, final String transportPackageName) {
 		final Comparator<TypeDeclaration> byName = (e1, e2) -> e1.name().compareTo(e2.name());
 		final StringBuffer fields = new StringBuffer();
 
 		members.stream().sorted(byName).forEach(member -> {
-			fields.append(INDENT1).append("private ").append(getJavaType(member.type())).append(" ")
+			fields.append(INDENT1).append("private ").append(getJavaType(member.type(), transportPackageName)).append(" ")
 					.append(member.name()).append(";").append(NEWLINE);
 		});
 
@@ -158,7 +153,7 @@ public class CodeGenerator {
 
 		members.stream().sorted(byName).forEach(member -> {
 			final StringBuffer methods = new StringBuffer();
-			final String memberType = getJavaType(member.type());
+			final String memberType = getJavaType(member.type(), transportPackageName);
 			final String functionName = Character.toUpperCase(member.name().charAt(0)) + member.name().substring(1);
 
 			methods.append(INDENT1).append("public ").append(memberType).append(" get").append(functionName)
