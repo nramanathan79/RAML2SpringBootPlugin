@@ -186,7 +186,7 @@ public class GenerateRestController {
 
 				methods.append(CodeGenerator.INDENT2).append("return new ResponseEntity<>(").append(apiTitleSvc)
 						.append(".").append(methodName).append("(").append(getMethodVariables(method))
-						.append(", HttpStatus.OK);").append(CodeGenerator.NEWLINE);
+						.append("), HttpStatus.OK);").append(CodeGenerator.NEWLINE);
 
 				generator.addImport("org.springframework.http.HttpStatus");
 
