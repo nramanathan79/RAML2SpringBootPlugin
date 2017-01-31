@@ -90,9 +90,7 @@ public class RAML2SpringBootAction implements IObjectActionDelegate {
 					}
 				}
 			}
-		}
-
-		if (errorMessage != null) {
+		} else if (errorMessage != null) {
 			MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
 					"RAML to Spring Boot was NOT executed for " + ramlFilePath + " because " + errorMessage);
 		}
