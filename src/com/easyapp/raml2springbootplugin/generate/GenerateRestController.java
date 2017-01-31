@@ -214,7 +214,7 @@ public class GenerateRestController {
 			final StringBuffer methods = new StringBuffer();
 			final String[] exceptionValues = exception.getValue().split("~");
 
-			methods.append(CodeGenerator.INDENT1).append("@ExceptionHandler(").append(exception.getValue())
+			methods.append(CodeGenerator.INDENT1).append("@ExceptionHandler(").append(exceptionValues[0])
 					.append(".class)").append(CodeGenerator.NEWLINE);
 			generator.addImport("org.springframework.web.bind.annotation.ExceptionHandler");
 
@@ -225,7 +225,8 @@ public class GenerateRestController {
 
 			methods.append(CodeGenerator.INDENT2).append("final ").append(exceptionValues[1])
 					.append(" errorResponse = new ").append(exceptionValues[1]).append("();")
-					.append(CodeGenerator.NEWLINE);
+					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
+			
 			methods.append(CodeGenerator.INDENT2).append("// TODO: Set Error Response.").append(CodeGenerator.NEWLINE)
 					.append(CodeGenerator.NEWLINE);
 
