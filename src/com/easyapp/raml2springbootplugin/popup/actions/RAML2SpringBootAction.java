@@ -40,7 +40,7 @@ public class RAML2SpringBootAction implements IObjectActionDelegate {
 
 				if (pathString.endsWith("Application.java")) {
 					final String relativePath = directoryPath.substring(sourceDirectory.length() + 1);
-					basePackage = relativePath.replaceAll("\\\\", ".");
+					basePackage = relativePath.replaceAll("\\\\", ".").replaceAll("/", ".");
 				} else {
 					getBasePackage(path.toString());
 				}
