@@ -10,6 +10,7 @@ import org.raml.v2.api.model.v10.api.Api;
 import org.raml.v2.api.model.v10.datamodel.ArrayTypeDeclaration;
 import org.raml.v2.api.model.v10.datamodel.ObjectTypeDeclaration;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
+import org.raml.v2.api.model.v10.resources.Resource;
 
 public class GenerateTransport {
 	final Api api;
@@ -31,13 +32,6 @@ public class GenerateTransport {
 			types.add(body);
 			transportTypes.put(key, types);
 		}
-	}
-
-	public GenerateTransport(final Api api, final String sourceDirectory, final String basePackage) {
-		this.api = api;
-		this.sourceDirectory = sourceDirectory;
-		this.basePackage = basePackage;
-		apiTitle = api.title().value().replaceAll(" ", "");
 	}
 
 	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
@@ -74,18 +68,29 @@ public class GenerateTransport {
 
 		generator.writeCode();
 	}
+	
+	private void getTransportTypes(final Resource resource) {
+		resource.methods().stream().forEach(method -> {
+			method.body().stream().filter(body -> !body.type().contains("-")).forEach(body -> addToMap(body, null));
 
-	public void create() {
-		api.resources().stream().forEach(resource -> {
-			resource.methods().stream().forEach(method -> {
-				method.body().stream().filter(body -> !body.type().contains("-")).forEach(body -> addToMap(body, null));
-
-				method.responses().stream().forEach(response -> {
-					response.body().stream().filter(body -> !body.type().contains("-"))
-							.forEach(body -> addToMap(body, response.code().value()));
-				});
+			method.responses().stream().forEach(response -> {
+				response.body().stream().filter(body -> !body.type().contains("-"))
+						.forEach(body -> addToMap(body, response.code().value()));
 			});
 		});
+		
+		resource.resources().stream().forEach(subResource -> getTransportTypes(subResource));
+	}
+
+	public GenerateTransport(final Api api, final String sourceDirectory, final String basePackage) {
+		this.api = api;
+		this.sourceDirectory = sourceDirectory;
+		this.basePackage = basePackage;
+		apiTitle = api.title().value().replaceAll(" ", "");
+	}
+
+	public void create() {
+		api.resources().stream().forEach(resource -> getTransportTypes(resource));
 
 		transportTypes.entrySet().stream().forEach(transportType -> {
 			transportType.getValue().stream().forEach(type -> {

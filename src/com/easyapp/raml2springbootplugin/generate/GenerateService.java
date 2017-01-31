@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.raml.v2.api.model.v10.api.Api;
+import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 
@@ -13,11 +14,11 @@ public class GenerateService {
 	private final String apiTitle;
 	private final CodeGenerator generator;
 
-	private String getPathVariables(final Resource resource) {
-		if (resource.uriParameters().isEmpty()) {
+	private String getPathVariables(final List<TypeDeclaration> uriParameters) {
+		if (uriParameters.isEmpty()) {
 			return "";
 		} else {
-			return resource.uriParameters().stream()
+			return uriParameters.stream()
 					.map(uriParam -> "final " + generator.getJavaType(uriParam.type()) + " " + uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
@@ -35,7 +36,7 @@ public class GenerateService {
 
 	private String getMethodParameters(final Method method) {
 		final List<String> variables = new ArrayList<>();
-		final String pathVariables = getPathVariables(method.resource());
+		final String pathVariables = getPathVariables(GeneratorUtil.getURIParameters(method.resource()));
 		final String requestParams = getRequestParameters(method);
 
 		if (!("").equals(pathVariables)) {
@@ -56,29 +57,33 @@ public class GenerateService {
 		return variables.stream().collect(Collectors.joining(", "));
 	}
 
+	private void createResourceMethods(final Resource resource) {
+		resource.methods().stream().forEach(method -> {
+			final StringBuffer methods = new StringBuffer();
+
+			final String responseType = generator
+					.getJavaType(method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+							.map(response -> response.body().get(0).type()).findFirst().orElse(apiTitle + "Response"));
+
+			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
+					.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")
+					.append(getMethodParameters(method)).append(");").append(CodeGenerator.NEWLINE);
+
+			generator.addCodeBlock(methods.toString());
+		});
+
+		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource));
+	}
+
 	public GenerateService(final Api api, final String sourceDirectory, final String basePackage) {
 		this.api = api;
 		apiTitle = api.title().value().replaceAll(" ", "");
-		generator = new CodeGenerator(sourceDirectory, basePackage + ".service", null, true, apiTitle + "Service", null, null);
+		generator = new CodeGenerator(sourceDirectory, basePackage + ".service", null, true, apiTitle + "Service", null,
+				null);
 	}
 
 	public void create() {
-		api.resources().stream().forEach(resource -> {
-			resource.methods().stream().forEach(method -> {
-				final StringBuffer methods = new StringBuffer();
-				
-				final String responseType = generator.getJavaType(method.responses().stream()
-						.filter(response -> ("200").equals(response.code().value()))
-						.map(response -> response.body().get(0).type()).findFirst().orElse(apiTitle + "Response"));
-
-				methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
-						.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")
-						.append(getMethodParameters(method)).append(");").append(CodeGenerator.NEWLINE);
-
-				generator.addCodeBlock(methods.toString());
-			});
-		});
-
+		api.resources().stream().forEach(resource -> createResourceMethods(resource));
 		generator.writeCode();
 	}
 }
