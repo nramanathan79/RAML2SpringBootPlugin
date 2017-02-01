@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            objectClass="org.eclipse.core.resources.IFile"
-            id="RAML2SpringBootPlugin.contribution"
-            nameFilter="*.raml">
-         <action
-               label="RAML to Spring Boot"
-               class="com.easyapp.raml2springbootplugin.popup.actions.RAML2SpringBootAction"
-               enablesFor="1"
-               id="RAML2SpringBootPlugin.GenerateAction">
-         </action>
-      </objectContribution>
-   </extension>
+  <extension point="org.eclipse.ui.commands">
+    <command defaultHandler="com.easyapp.raml2springbootplugin.handler.RAML2SpringBootHandler" description="RAML to Spring Boot" id="com.easyapp.raml2springbootplugin.command" name="RAMLSpringBootCommand" />
+  </extension>
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+      <command commandId="com.easyapp.raml2springbootplugin.command" label="RAML to Spring Boot" style="push" tooltip="Generate Spring Boot Code from this RAML Specification">
+        <visibleWhen>
+          <iterate
+                ifEmpty="false">
+            <instanceof value="org.eclipse.core.resources.IFile" />
+            <test property="org.eclipse.core.resources.extension" value="raml" />
+          </iterate>
+        </visibleWhen>
+      </command>
+    </menuContribution>
+  </extension>
 </plugin>
