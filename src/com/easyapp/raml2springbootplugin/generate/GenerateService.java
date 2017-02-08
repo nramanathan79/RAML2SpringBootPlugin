@@ -76,7 +76,7 @@ public class GenerateService {
 
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
 					.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")
-					.append(getMethodParameters(method)).append(");").append(CodeGenerator.NEWLINE);
+					.append(getMethodParameters(method)).append(") throws Exception;").append(CodeGenerator.NEWLINE);
 
 			generator.addCodeBlock(methods.toString());
 		});

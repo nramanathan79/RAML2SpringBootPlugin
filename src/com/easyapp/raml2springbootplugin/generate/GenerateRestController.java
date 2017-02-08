@@ -155,8 +155,9 @@ public class GenerateRestController {
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
-			final String throwsClause = " throws " + method.responses().stream()
-					.filter(response -> !("200").equals(response.code().value())).map(response -> {
+			// Get the exceptions
+			method.responses().stream().filter(response -> !("200").equals(response.code().value()))
+					.forEach(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
 						final String errorReturnType = generator.getJavaType(response.body().get(0).type(),
 								CodeGenerator.ERROR_TRANSPORT_PACKAGE);
@@ -164,13 +165,10 @@ public class GenerateRestController {
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
 						generator.addImport(basePackage + ".exception." + exceptionClassName);
 						generator.addImport(basePackage + ".error." + errorReturnType);
-
-						return exceptionClassName;
-					}).collect(Collectors.joining(", "));
+					});
 
 			methods.append(CodeGenerator.INDENT1).append("public ResponseEntity<").append(responseType).append("> ")
-					.append(methodName).append("(").append(getMethodParameters(method)).append(")")
-					.append((" throws ".equals(throwsClause) ? "" : throwsClause)).append(" {")
+					.append(methodName).append("(").append(getMethodParameters(method)).append(") throws Exception {")
 					.append(CodeGenerator.NEWLINE);
 
 			generator.addImport("org.springframework.http.ResponseEntity");
@@ -226,7 +224,7 @@ public class GenerateRestController {
 			methods.append(CodeGenerator.INDENT2).append("final ").append(exceptionValues[1])
 					.append(" errorResponse = new ").append(exceptionValues[1]).append("();")
 					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
-			
+
 			methods.append(CodeGenerator.INDENT2).append("// TODO: Set Error Response.").append(CodeGenerator.NEWLINE)
 					.append(CodeGenerator.NEWLINE);
 
@@ -239,6 +237,25 @@ public class GenerateRestController {
 
 			generator.addCodeBlock(methods.toString());
 		});
+
+		final StringBuffer genericExceptionBlock = new StringBuffer();
+		genericExceptionBlock.append(CodeGenerator.INDENT1).append("@ExceptionHandler(Exception.class)")
+				.append(CodeGenerator.NEWLINE);
+		generator.addImport("org.springframework.web.bind.annotation.ExceptionHandler");
+
+		genericExceptionBlock.append(CodeGenerator.INDENT1)
+				.append("public ResponseEntity<Error> whenException(final Exception exception) {")
+				.append(CodeGenerator.NEWLINE);
+		generator.addImport("org.springframework.http.ResponseEntity");
+
+		genericExceptionBlock.append(CodeGenerator.INDENT2)
+				.append("return new ResponseEntity<>(new Error(exception), HttpStatus.INTERNAL_SERVER_ERROR);")
+				.append(CodeGenerator.NEWLINE);
+		generator.addImport("org.springframework.http.HttpStatus");
+
+		genericExceptionBlock.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+
+		generator.addCodeBlock(genericExceptionBlock.toString());
 
 		generator.writeCode();
 	}

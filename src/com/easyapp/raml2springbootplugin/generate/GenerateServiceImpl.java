@@ -69,7 +69,7 @@ public class GenerateServiceImpl {
 			methods.append(CodeGenerator.INDENT1).append("@Override").append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
 					.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")
-					.append(getMethodParameters(method)).append(") {").append(CodeGenerator.NEWLINE);
+					.append(getMethodParameters(method)).append(") throws Exception {").append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT2).append("// TODO: Build Business Logic Here")
 					.append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT2).append("return null;").append(CodeGenerator.NEWLINE);
