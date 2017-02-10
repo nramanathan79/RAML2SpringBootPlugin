@@ -13,9 +13,11 @@ import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+
 public class GenerateRestController {
 	private final Api api;
-	private final String basePackage;
+	private final CodeGenConfig codeGenConfig;
 	private final String apiTitle;
 	private final String apiTitleSvc;
 	private final CodeGenerator generator;
@@ -163,8 +165,8 @@ public class GenerateRestController {
 								CodeGenerator.ERROR_TRANSPORT_PACKAGE);
 
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
-						generator.addImport(basePackage + ".exception." + exceptionClassName);
-						generator.addImport(basePackage + ".error." + errorReturnType);
+						generator.addImport(codeGenConfig.getBasePackage() + ".exception." + exceptionClassName);
+						generator.addImport(codeGenConfig.getBasePackage() + ".error." + errorReturnType);
 					});
 
 			methods.append(CodeGenerator.INDENT1).append("public ResponseEntity<").append(responseType).append("> ")
@@ -187,13 +189,14 @@ public class GenerateRestController {
 		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource));
 	}
 
-	public GenerateRestController(final Api api, final String sourceDirectory, final String basePackage) {
+	public GenerateRestController(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
-		this.basePackage = basePackage;
+		this.codeGenConfig = codeGenConfig;
 		apiTitle = api.title().value().replaceAll(" ", "");
 		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
-		generator = new CodeGenerator(sourceDirectory, basePackage + ".restcontroller",
-				Arrays.asList("@RestController"), false, apiTitle + "RestController", null, null);
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
+				codeGenConfig.getBasePackage() + ".restcontroller", Arrays.asList("@RestController"), false,
+				apiTitle + "RestController", null, null);
 		generator.addImport("org.springframework.web.bind.annotation.RestController");
 	}
 
@@ -203,7 +206,7 @@ public class GenerateRestController {
 				.append(CodeGenerator.INDENT1).append("private ").append(apiTitle + "Service ").append(apiTitleSvc)
 				.append(";").append(CodeGenerator.NEWLINE);
 		generator.addCodeBlock(members.toString());
-		generator.addImport(basePackage + ".service." + apiTitle + "Service");
+		generator.addImport(codeGenConfig.getBasePackage() + ".service." + apiTitle + "Service");
 		generator.addImport("org.springframework.beans.factory.annotation.Autowired");
 
 		api.resources().stream().forEach(resource -> createResourceMethods(resource));

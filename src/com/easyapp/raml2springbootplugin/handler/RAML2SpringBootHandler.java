@@ -1,12 +1,7 @@
 package com.easyapp.raml2springbootplugin.handler;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -22,33 +17,14 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 import com.easyapp.raml2springbootplugin.generate.RAML2SpringBoot;
 
 public class RAML2SpringBootHandler extends AbstractHandler {
-	private String ramlFilePath = null;
-	private String sourceDirectory = null;
-	private String errorMessage = null;
-	private String basePackage = null;
+	private CodeGenConfig codeGenConfig = null;
 	private IProject project = null;
 
-	private void getBasePackage(final String directoryPath) {
-		if (basePackage == null) {
-			try (final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(directoryPath))) {
-				for (final Path path : directoryStream) {
-					if (path.toString().endsWith("Application.java")) {
-						final String relativePath = directoryPath.substring(sourceDirectory.length() + 1);
-						basePackage = relativePath.replaceAll("\\\\", ".").replaceAll("/", ".");
-					} else {
-						getBasePackage(path.toString());
-					}
-				}
-			} catch (IOException ex) {
-				errorMessage = "the Project does not contain src/main/java directory";
-			}
-		}
-	}
-
-	private void getProjectDetails(final ISelection selection) {
+	private String getCodeGenConfig(final ISelection selection) {
 		if (selection != null && selection instanceof IStructuredSelection) {
 			final IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			final Object selectedObj = structuredSelection.getFirstElement();
@@ -59,25 +35,33 @@ public class RAML2SpringBootHandler extends AbstractHandler {
 				project = selectedFile.getProject();
 
 				if (!relativePath.startsWith("src/main/resources")) {
-					errorMessage = "the RAML file is NOT in the <Project>/src/main/resources directory";
+					return "RAML file is not in the <Project>/src/main/resources directory";
 				} else {
-					ramlFilePath = selectedFile.getRawLocation().toString();
-					sourceDirectory = ramlFilePath.substring(0, ramlFilePath.indexOf(relativePath)) + "src/main/java";
-					getBasePackage(sourceDirectory);
+					codeGenConfig = new CodeGenConfig(selectedFile.getRawLocation().toString(), relativePath);
 				}
 			}
 		}
+
+		return null;
 	}
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final Shell shell = HandlerUtil.getActiveShell(event);
 
-		getProjectDetails(HandlerUtil.getActiveMenuSelection(event));
+		String errorMessage = getCodeGenConfig(HandlerUtil.getActiveMenuSelection(event));
 
-		if (ramlFilePath != null && sourceDirectory != null && basePackage != null) {
+		if (errorMessage == null) {
+			if (codeGenConfig == null) {
+				errorMessage = "Could not get the RAML file configuration";
+			} else {
+				errorMessage = codeGenConfig.getConfigError();
+			}
+		}
+
+		if (errorMessage == null) {
 			try {
-				RAML2SpringBoot.generate(ramlFilePath, sourceDirectory, basePackage);
+				RAML2SpringBoot.generate(codeGenConfig);
 
 				MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
 						"Successfully executed RAML to Spring Boot");
@@ -92,14 +76,14 @@ public class RAML2SpringBootHandler extends AbstractHandler {
 			} catch (final Throwable e) {
 				final StringWriter writer = new StringWriter();
 				e.printStackTrace(new PrintWriter(writer));
+				e.printStackTrace();
 
 				MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
-						"Error encountered while generating Spring Boot code for RAML: " + ramlFilePath
-								+ ", Error Message: " + writer.toString());
+						"Error encountered while generating Spring Boot code, Error Message: " + writer.toString());
 			}
-		} else if (errorMessage != null) {
+		} else {
 			MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
-					"RAML to Spring Boot was NOT executed for " + ramlFilePath + " because " + errorMessage);
+					"RAML to Spring Boot was NOT executed because " + errorMessage);
 		}
 
 		return null;

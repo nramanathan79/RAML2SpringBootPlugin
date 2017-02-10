@@ -10,6 +10,8 @@ import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+
 public class GenerateServiceImpl {
 	private final Api api;
 	private final String apiTitle;
@@ -20,7 +22,9 @@ public class GenerateServiceImpl {
 			return "";
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> "final " + generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + uriParam.name())
+					.map(uriParam -> "final "
+							+ generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -30,7 +34,9 @@ public class GenerateServiceImpl {
 			return "";
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> "final " + generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + queryParam.name())
+					.map(queryParam -> "final "
+							+ generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -45,10 +51,14 @@ public class GenerateServiceImpl {
 		}
 
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
-			variables.add("final "
-					+ generator.getJavaType(method.body().isEmpty() ? "String"
-							: (method.body().get(0).type().isEmpty() ? "String" : method.body().get(0).type()), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
-					+ " requestBody");
+			variables
+					.add("final "
+							+ generator.getJavaType(
+									method.body().isEmpty() ? "String"
+											: (method.body().get(0).type().isEmpty() ? "String"
+													: method.body().get(0).type()),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+							+ " requestBody");
 		}
 
 		if (!("").equals(requestParams)) {
@@ -62,9 +72,10 @@ public class GenerateServiceImpl {
 		resource.methods().stream().forEach(method -> {
 			final StringBuffer methods = new StringBuffer();
 
-			final String responseType = generator
-					.getJavaType(method.responses().stream().filter(response -> ("200").equals(response.code().value()))
-							.map(response -> response.body().get(0).type()).findFirst().orElse("string"), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
+			final String responseType = generator.getJavaType(
+					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			methods.append(CodeGenerator.INDENT1).append("@Override").append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
@@ -81,11 +92,11 @@ public class GenerateServiceImpl {
 		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource));
 	}
 
-	public GenerateServiceImpl(final Api api, final String sourceDirectory, final String basePackage) {
+	public GenerateServiceImpl(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
 		apiTitle = api.title().value().replaceAll(" ", "");
-		generator = new CodeGenerator(sourceDirectory, basePackage + ".service", Arrays.asList("@Service"), false,
-				apiTitle + "ServiceImpl", null, Arrays.asList(apiTitle + "Service"));
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
+				Arrays.asList("@Service"), false, apiTitle + "ServiceImpl", null, Arrays.asList(apiTitle + "Service"));
 		generator.addImport("org.springframework.stereotype.Service");
 	}
 

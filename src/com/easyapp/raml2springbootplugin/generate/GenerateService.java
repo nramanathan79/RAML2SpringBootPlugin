@@ -9,6 +9,8 @@ import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+
 public class GenerateService {
 	private final Api api;
 	private final String apiTitle;
@@ -84,11 +86,11 @@ public class GenerateService {
 		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource));
 	}
 
-	public GenerateService(final Api api, final String sourceDirectory, final String basePackage) {
+	public GenerateService(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
 		apiTitle = api.title().value().replaceAll(" ", "");
-		generator = new CodeGenerator(sourceDirectory, basePackage + ".service", null, true, apiTitle + "Service", null,
-				null);
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
+				null, true, apiTitle + "Service", null, null);
 	}
 
 	public void create() {

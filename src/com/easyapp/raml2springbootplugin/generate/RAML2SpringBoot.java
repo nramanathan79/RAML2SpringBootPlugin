@@ -7,10 +7,12 @@ import org.raml.v2.api.RamlModelBuilder;
 import org.raml.v2.api.RamlModelResult;
 import org.raml.v2.api.model.v10.api.Api;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+
 public class RAML2SpringBoot {
-	public static void generate(final String ramlFilePath, final String sourceDirectory, final String basePackage)
+	public static void generate(final CodeGenConfig codeGenConfig)
 			throws Exception {
-		final RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(Paths.get(ramlFilePath).toFile());
+		final RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(Paths.get(codeGenConfig.getRamlFilePath()).toFile());
 
 		if (ramlModelResult.hasErrors()) {
 			throw new Exception(ramlModelResult.getValidationResults().stream().map(result -> result.getMessage())
@@ -19,19 +21,19 @@ public class RAML2SpringBoot {
 
 		final Api api = ramlModelResult.getApiV10();
 
-		GenerateExceptions exceptions = new GenerateExceptions(api, sourceDirectory, basePackage);
+		GenerateExceptions exceptions = new GenerateExceptions(api, codeGenConfig);
 		exceptions.create();
 
-		GenerateTransport transport = new GenerateTransport(api, sourceDirectory, basePackage);
+		GenerateTransport transport = new GenerateTransport(api, codeGenConfig);
 		transport.create();
 
-		GenerateService service = new GenerateService(api, sourceDirectory, basePackage);
+		GenerateService service = new GenerateService(api, codeGenConfig);
 		service.create();
 
-		GenerateServiceImpl serviceImpl = new GenerateServiceImpl(api, sourceDirectory, basePackage);
+		GenerateServiceImpl serviceImpl = new GenerateServiceImpl(api, codeGenConfig);
 		serviceImpl.create();
 
-		GenerateRestController restController = new GenerateRestController(api, sourceDirectory, basePackage);
+		GenerateRestController restController = new GenerateRestController(api, codeGenConfig);
 		restController.create();
 	}
 }

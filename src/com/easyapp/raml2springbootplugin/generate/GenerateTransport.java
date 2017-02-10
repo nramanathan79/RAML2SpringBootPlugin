@@ -12,10 +12,11 @@ import org.raml.v2.api.model.v10.datamodel.ObjectTypeDeclaration;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.resources.Resource;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+
 public class GenerateTransport {
 	final Api api;
-	final String sourceDirectory;
-	final String basePackage;
+	final CodeGenConfig codeGenConfig;
 	final String apiTitle;
 	final Map<String, Set<TypeDeclaration>> transportTypes = new HashMap<>();
 
@@ -36,8 +37,9 @@ public class GenerateTransport {
 	}
 
 	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
-		final CodeGenerator generator = new CodeGenerator(sourceDirectory, basePackage + "." + transportPackageName,
-				null, false, "object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
+				codeGenConfig.getBasePackage() + "." + transportPackageName, null, false,
+				"object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
 				Arrays.asList("Serializable"));
 		generator.addImport("java.io.Serializable");
 
@@ -83,10 +85,9 @@ public class GenerateTransport {
 		resource.resources().stream().forEach(subResource -> getTransportTypes(subResource));
 	}
 
-	public GenerateTransport(final Api api, final String sourceDirectory, final String basePackage) {
+	public GenerateTransport(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
-		this.sourceDirectory = sourceDirectory;
-		this.basePackage = basePackage;
+		this.codeGenConfig = codeGenConfig;
 		apiTitle = api.title().value().replaceAll(" ", "");
 	}
 
