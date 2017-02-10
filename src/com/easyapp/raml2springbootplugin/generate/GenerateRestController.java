@@ -91,25 +91,34 @@ public class GenerateRestController {
 		}
 	}
 
+	private String getRequestBodyVariable(final Method method) {
+		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
+			generator.addImport("org.springframework.web.bind.annotation.RequestBody");
+			if (method.body().isEmpty()) {
+				return "@RequestBody final String requestBody";
+			} else {
+				return "@RequestBody final "
+						+ generator.getJavaType((method.body().get(0).type().isEmpty() ? "string" : method.body().get(0).type()),
+								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+						+ " " + GeneratorUtil.getRequestBodyVariableName(method);
+			}
+		}
+
+		return "";
+	}
+
 	private String getMethodParameters(final Method method) {
 		final List<String> variables = new ArrayList<>();
 		final String pathVariables = getPathVariables(GeneratorUtil.getURIParameters(method.resource()));
+		final String requestBodyVariable = getRequestBodyVariable(method);
 		final String requestParams = getRequestParameters(method);
 
 		if (!("").equals(pathVariables)) {
 			variables.add(pathVariables);
 		}
 
-		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
-			generator.addImport("org.springframework.web.bind.annotation.RequestBody");
-			variables
-					.add("@RequestBody final "
-							+ generator.getJavaType(
-									method.body().isEmpty() ? "String"
-											: (method.body().get(0).type().isEmpty() ? "String"
-													: method.body().get(0).type()),
-									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
-							+ " requestBody");
+		if (!("").equals(requestBodyVariable)) {
+			variables.add(requestBodyVariable);
 		}
 
 		if (!("").equals(requestParams)) {
@@ -130,7 +139,7 @@ public class GenerateRestController {
 		}
 
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
-			variables.add("requestBody");
+			variables.add(GeneratorUtil.getRequestBodyVariableName(method));
 		}
 
 		if (!method.queryParameters().isEmpty()) {

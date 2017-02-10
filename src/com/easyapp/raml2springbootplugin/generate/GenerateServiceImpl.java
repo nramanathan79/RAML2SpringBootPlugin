@@ -54,11 +54,11 @@ public class GenerateServiceImpl {
 			variables
 					.add("final "
 							+ generator.getJavaType(
-									method.body().isEmpty() ? "String"
-											: (method.body().get(0).type().isEmpty() ? "String"
+									method.body().isEmpty() ? "string"
+											: (method.body().get(0).type().isEmpty() ? "string"
 													: method.body().get(0).type()),
 									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
-							+ " requestBody");
+							+ " " + GeneratorUtil.getRequestBodyVariableName(method));
 		}
 
 		if (!("").equals(requestParams)) {

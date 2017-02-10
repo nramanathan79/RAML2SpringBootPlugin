@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
+import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 import org.springframework.http.HttpStatus;
 
@@ -15,6 +16,16 @@ public class GeneratorUtil {
 		}
 	}
 	
+	public static String getRequestBodyVariableName(final Method method) {
+		if (method.body().isEmpty()) {
+			return "requestBody";
+		} else {
+			final TypeDeclaration methodBody = method.body().get(0);
+			return (methodBody.displayName() == null || methodBody.displayName().value().isEmpty() ? "requestBody"
+					: methodBody.displayName().value());
+		}
+	}
+
 	public static List<TypeDeclaration> getURIParameters(final Resource resource) {
 		List<TypeDeclaration> uriParameters = new ArrayList<>();
 		addURIParameters(resource, uriParameters);
