@@ -10,6 +10,9 @@ public class CodeGenConfig {
 	private String ramlFilePath = null;
 	private String projectDirectory = null;
 	private String sourceDirectory = null;
+	private String testDirectory = null;
+	private String testFilePath = null;
+	private String testClassName = null;
 	private String basePackage = null;
 
 	private void getBasePackage(final String directoryPath) {
@@ -29,12 +32,29 @@ public class CodeGenConfig {
 		}
 	}
 
+	private void getTestClass(final String directoryPath) {
+		try (final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(directoryPath))) {
+			directoryStream.forEach(path -> {
+				if (path.toString().endsWith("ApplicationTests.java")) {
+					final String testFileName = path.getFileName().toString();
+
+					testFilePath = path.toString();
+					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
+				}
+			});
+		} catch (IOException ioe) {
+			// Do nothing
+		}
+	}
+
 	public CodeGenConfig(final String absoluteRamlFilePath, final String relativeRamlFilePath) {
 		this.ramlFilePath = absoluteRamlFilePath;
 		this.projectDirectory = absoluteRamlFilePath.substring(0,
 				absoluteRamlFilePath.indexOf(relativeRamlFilePath) - 1);
 		this.sourceDirectory = this.projectDirectory + "/src/main/java";
+		this.testDirectory = this.projectDirectory + "/src/test/java";
 		getBasePackage(this.sourceDirectory);
+		getTestClass(this.testDirectory);
 	}
 
 	public String getConfigError() {
@@ -64,6 +84,30 @@ public class CodeGenConfig {
 
 		if (!Files.isDirectory(Paths.get(sourceDirectory))) {
 			return "Source Directory: " + sourceDirectory + " does NOT exist";
+		}
+
+		if (testDirectory == null) {
+			return "Test Directory is missing";
+		}
+
+		if (!Files.isDirectory(Paths.get(testDirectory))) {
+			return "Test Directory: " + testDirectory + " does NOT exist";
+		}
+
+		if (testFilePath == null) {
+			return "Test file is missing";
+		}
+
+		if (!Files.exists(Paths.get(testFilePath))) {
+			return "Test file: " + testFilePath + " does NOT exist";
+		}
+
+		if (!Files.isWritable(Paths.get(testFilePath))) {
+			return "Test file: " + testFilePath + " is not writable";
+		}
+		
+		if (testClassName == null) {
+			return "Test class is missing";
 		}
 
 		if (basePackage == null) {
