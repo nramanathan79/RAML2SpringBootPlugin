@@ -133,8 +133,10 @@ public class GenerateRestController {
 			variables.add("requestBody");
 		}
 
-		variables.add(method.queryParameters().stream().map(queryParam -> queryParam.name())
-				.collect(Collectors.joining(", ")));
+		if (!method.queryParameters().isEmpty()) {
+			variables.add(method.queryParameters().stream().map(queryParam -> queryParam.name())
+					.collect(Collectors.joining(", ")));
+		}
 
 		return variables.stream().collect(Collectors.joining(", "));
 	}
