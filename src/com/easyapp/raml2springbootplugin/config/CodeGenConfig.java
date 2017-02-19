@@ -40,6 +40,8 @@ public class CodeGenConfig {
 
 					testFilePath = path.toString();
 					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
+				} else {
+					getTestClass(path.toString());
 				}
 			});
 		} catch (IOException ioe) {

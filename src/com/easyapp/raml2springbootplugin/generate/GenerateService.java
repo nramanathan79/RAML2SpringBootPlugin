@@ -1,6 +1,7 @@
 package com.easyapp.raml2springbootplugin.generate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,8 +14,12 @@ import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 
 public class GenerateService {
 	private final Api api;
-	private final String apiTitle;
-	private final CodeGenerator generator;
+	private final CodeGenConfig codeGenConfig;
+	private CodeGenerator generator;
+
+	private static enum ServiceType {
+		SERVICE, IMPLEMENTATION
+	};
 
 	private String getPathVariables(final List<TypeDeclaration> uriParameters) {
 		if (uriParameters.isEmpty()) {
@@ -67,34 +72,69 @@ public class GenerateService {
 		return variables.stream().collect(Collectors.joining(", "));
 	}
 
-	private void createResourceMethods(final Resource resource) {
-		resource.methods().stream().forEach(method -> {
-			final StringBuffer methods = new StringBuffer();
+	private void createServiceMethod(final Method method, final String responseType) {
+		final StringBuffer methods = new StringBuffer();
 
+		methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ").append(method.method())
+				.append(method.resource().displayName().value().replaceAll(" ", "")).append("(")
+				.append(getMethodParameters(method)).append(") throws Exception;").append(CodeGenerator.NEWLINE);
+
+		generator.addCodeBlock(methods.toString());
+	}
+
+	private void createServiceImplMethod(final Method method, final String responseType) {
+		final StringBuffer methods = new StringBuffer();
+
+		methods.append(CodeGenerator.INDENT1).append("@Override").append(CodeGenerator.NEWLINE);
+		methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ").append(method.method())
+				.append(method.resource().displayName().value().replaceAll(" ", "")).append("(")
+				.append(getMethodParameters(method)).append(") throws Exception {").append(CodeGenerator.NEWLINE);
+		methods.append(CodeGenerator.INDENT2).append("// TODO: Build Business Logic Here")
+				.append(CodeGenerator.NEWLINE);
+		methods.append(CodeGenerator.INDENT2).append("return null;").append(CodeGenerator.NEWLINE);
+		methods.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+
+		generator.addCodeBlock(methods.toString());
+	}
+
+	private void createResourceMethods(final Resource resource, final ServiceType serviceType) {
+		resource.methods().stream().forEach(method -> {
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
-			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
-					.append(method.method()).append(resource.displayName().value().replaceAll(" ", "")).append("(")
-					.append(getMethodParameters(method)).append(") throws Exception;").append(CodeGenerator.NEWLINE);
-
-			generator.addCodeBlock(methods.toString());
+			if (serviceType == ServiceType.IMPLEMENTATION) {
+				createServiceImplMethod(method, responseType);
+			} else {
+				createServiceMethod(method, responseType);
+			}
 		});
 
-		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource));
+		resource.resources().stream().forEach(subResource -> createResourceMethods(subResource, serviceType));
 	}
 
 	public GenerateService(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
-		apiTitle = api.title().value().replaceAll(" ", "");
-		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
-				null, true, apiTitle + "Service", null, null);
+		this.codeGenConfig = codeGenConfig;
 	}
 
 	public void create() {
-		api.resources().stream().forEach(resource -> createResourceMethods(resource));
+		final String apiTitle = api.title().value().replaceAll(" ", "");
+
+		// Generate Service
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
+				null, true, apiTitle + "Service", null, null);
+
+		api.resources().stream().forEach(resource -> createResourceMethods(resource, ServiceType.SERVICE));
+		generator.writeCode();
+
+		// Generate Service Implementation
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
+				Arrays.asList("@Service"), false, apiTitle + "ServiceImpl", null, Arrays.asList(apiTitle + "Service"));
+		generator.addImport("org.springframework.stereotype.Service");
+
+		api.resources().stream().forEach(resource -> createResourceMethods(resource, ServiceType.IMPLEMENTATION));
 		generator.writeCode();
 	}
 }

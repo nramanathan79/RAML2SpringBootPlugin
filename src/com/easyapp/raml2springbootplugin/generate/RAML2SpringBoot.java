@@ -30,9 +30,6 @@ public class RAML2SpringBoot {
 		GenerateService service = new GenerateService(api, codeGenConfig);
 		service.create();
 
-		GenerateServiceImpl serviceImpl = new GenerateServiceImpl(api, codeGenConfig);
-		serviceImpl.create();
-
 		GenerateRestController restController = new GenerateRestController(api, codeGenConfig);
 		restController.create();
 	}
