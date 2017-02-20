@@ -17,7 +17,6 @@ import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 public class GenerateTransport {
 	final Api api;
 	final CodeGenConfig codeGenConfig;
-	final String apiTitle;
 	final Map<String, Set<TypeDeclaration>> transportTypes = new HashMap<>();
 
 	private void addToMap(final TypeDeclaration body, final String responseType) {
@@ -88,7 +87,6 @@ public class GenerateTransport {
 	public GenerateTransport(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
 		this.codeGenConfig = codeGenConfig;
-		apiTitle = api.title().value().replaceAll(" ", "");
 	}
 
 	public void create() {
