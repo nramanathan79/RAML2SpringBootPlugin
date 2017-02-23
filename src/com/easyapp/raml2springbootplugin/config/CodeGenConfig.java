@@ -1,10 +1,15 @@
 package com.easyapp.raml2springbootplugin.config;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CodeGenConfig {
 	private String ramlFilePath = null;
@@ -14,6 +19,7 @@ public class CodeGenConfig {
 	private String testFilePath = null;
 	private String testClassName = null;
 	private String basePackage = null;
+	private ExternalConfig externalConfig = null;
 
 	private void getBasePackage(final String directoryPath) {
 		if (basePackage == null) {
@@ -39,14 +45,28 @@ public class CodeGenConfig {
 					final String testFileName = path.getFileName().toString();
 
 					testFilePath = path.toString();
-					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
-					System.out.println("RAMBO TEST CLASS NAME: " + testClassName);
+					testClassName = testFileName.substring(0, testFileName.indexOf(".java") - 1);
 				} else {
 					getTestClass(path.toString());
 				}
 			});
 		} catch (IOException ioe) {
 			// Do nothing
+		}
+	}
+
+	private void getExternalConfig(final String configFilePath) {
+		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
+			try {
+				final ObjectMapper mapper = new ObjectMapper();
+				externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (externalConfig == null) {
+			externalConfig = new ExternalConfig();
 		}
 	}
 
@@ -58,6 +78,7 @@ public class CodeGenConfig {
 		this.testDirectory = this.projectDirectory + "/src/test/java";
 		getBasePackage(this.sourceDirectory);
 		getTestClass(this.testDirectory);
+		getExternalConfig(this.projectDirectory + "/src/main/resources/config.json");
 	}
 
 	public String getConfigError() {
@@ -108,13 +129,37 @@ public class CodeGenConfig {
 		if (!Files.isWritable(Paths.get(testFilePath))) {
 			return "Test file: " + testFilePath + " is not writable";
 		}
-		
+
 		if (testClassName == null) {
 			return "Test class is missing";
 		}
 
 		if (basePackage == null) {
 			return "Base Package for the Application is missing";
+		}
+
+		if (externalConfig.dockerize()) {
+			if (externalConfig.getDockerConfig() == null) {
+				return "Docker Configuration is missing";
+			}
+
+			if (StringUtils.isEmpty(externalConfig.getDockerConfig().getDockerBaseImageName())) {
+				return "Docker Base Image is missing";
+			}
+
+			if (!externalConfig.getDockerConfig().getDockerBaseImageName()
+					.equals(externalConfig.getDockerConfig().getDockerBaseImageName().toLowerCase())) {
+				return "Docker Base Image is invalid (Docker Images should be all lower case)";
+			}
+
+			if (StringUtils.isEmpty(externalConfig.getDockerConfig().getDockerImageName())) {
+				return "Docker Image is missing";
+			}
+
+			if (!externalConfig.getDockerConfig().getDockerImageName()
+					.equals(externalConfig.getDockerConfig().getDockerImageName().toLowerCase())) {
+				return "Docker Base Image is invalid (Docker Images should be all lower case)";
+			}
 		}
 
 		return null;
@@ -134,5 +179,21 @@ public class CodeGenConfig {
 
 	public String getBasePackage() {
 		return basePackage;
+	}
+
+	public String getTestDirectory() {
+		return testDirectory;
+	}
+
+	public String getTestFilePath() {
+		return testFilePath;
+	}
+
+	public String getTestClassName() {
+		return testClassName;
+	}
+
+	public ExternalConfig getExternalConfig() {
+		return externalConfig;
 	}
 }
