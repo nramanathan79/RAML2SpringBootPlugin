@@ -11,7 +11,6 @@
   		<artifactId>spring-web</artifactId>
   		<version>4.3.6.RELEASE</version>
   	</dependency>
-
   	<dependency>
   		<groupId>org.raml</groupId>
   		<artifactId>raml-parser-2</artifactId>

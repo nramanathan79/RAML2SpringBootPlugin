@@ -40,6 +40,7 @@ public class CodeGenConfig {
 
 					testFilePath = path.toString();
 					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
+					System.out.println("RAMBO TEST CLASS NAME: " + testClassName);
 				} else {
 					getTestClass(path.toString());
 				}
