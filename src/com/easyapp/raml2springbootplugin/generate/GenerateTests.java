@@ -37,7 +37,7 @@ public class GenerateTests {
 		members.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("@LocalServerPort")
 				.append(CodeGenerator.NEWLINE);
 		members.append(CodeGenerator.INDENT1).append("private int port;").append(CodeGenerator.NEWLINE);
-		generator.addImport("org.springframework.boot.context.embedded.Autowired");
+		generator.addImport("org.springframework.boot.context.embedded.LocalServerPort");
 
 		members.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1)
 				.append("@Value(\"${server.context-path:}\")").append(CodeGenerator.NEWLINE);
@@ -69,7 +69,7 @@ public class GenerateTests {
 			methods.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
 			generator.addImport("org.junit.Test");
 			generator.addImport("org.springframework.http.ResponseEntity");
-			generator.addImport("static org.juint.Assert.assertThat");
+			generator.addImport("static org.junit.Assert.assertThat");
 			generator.addImport("static org.hamcrest.CoreMatchers.equalTo");
 		}
 	}
