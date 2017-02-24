@@ -75,7 +75,6 @@ public class GenerateService {
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
-			methods.append(CodeGenerator.INDENT1).append("@Override").append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
 					.append(method.method()).append(method.resource().displayName().value().replaceAll(" ", ""))
 					.append("(").append(getMethodParameters(method)).append(") throws Exception {")
@@ -96,7 +95,7 @@ public class GenerateService {
 		final String apiTitle = api.title().value().replaceAll(" ", "");
 
 		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
-				Arrays.asList("@Service"), false, apiTitle + "Service", null, Arrays.asList(apiTitle + "Service"));
+				Arrays.asList("@Service"), false, apiTitle + "Service", null, null);
 		generator.addImport("org.springframework.stereotype.Service");
 	}
 
