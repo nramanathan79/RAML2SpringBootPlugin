@@ -45,7 +45,7 @@ public class CodeGenConfig {
 					final String testFileName = path.getFileName().toString();
 
 					testFilePath = path.toString();
-					testClassName = testFileName.substring(0, testFileName.indexOf(".java") - 1);
+					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
 				} else {
 					getTestClass(path.toString());
 				}
