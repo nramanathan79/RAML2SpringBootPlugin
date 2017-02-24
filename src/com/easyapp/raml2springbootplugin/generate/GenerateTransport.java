@@ -39,7 +39,7 @@ public class GenerateTransport {
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
 				codeGenConfig.getBasePackage() + "." + transportPackageName, null, false,
 				"object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
-				Arrays.asList("Serializable"));
+				Arrays.asList("Serializable"), codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("java.io.Serializable");
 
 		final StringBuffer blocks = new StringBuffer();

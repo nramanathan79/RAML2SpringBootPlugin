@@ -75,7 +75,7 @@ public class CodeGenerator {
 
 	public CodeGenerator(final String sourceDirectory, final String packageName, final List<String> classAnnotations,
 			final boolean isInterface, final String className, final String extendsFrom,
-			final List<String> implementsList) {
+			final List<String> implementsList, final boolean overwriteFile) {
 		this.packageName = packageName;
 
 		final File directory = new File(sourceDirectory + File.separator + packageName.replace(".", File.separator));
@@ -84,7 +84,13 @@ public class CodeGenerator {
 			directory.mkdirs();
 		}
 
-		this.codeFilePath = Paths.get(directory + File.separator + className + ".java");
+		String filePath = directory + File.separator + className + ".java";
+		
+		if (Files.exists(Paths.get(filePath)) && !overwriteFile) {
+			filePath += ".MERGE";
+		}
+		
+		this.codeFilePath = Paths.get(filePath);
 		this.codeBlock
 				.append(classAnnotations == null ? "" : classAnnotations.stream().collect(Collectors.joining(NEWLINE)))
 				.append(classAnnotations == null ? "" : NEWLINE).append("public ")

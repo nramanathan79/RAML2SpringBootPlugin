@@ -32,5 +32,10 @@ public class RAML2SpringBoot {
 
 		GenerateRestController restController = new GenerateRestController(api, codeGenConfig);
 		restController.create();
+		
+		if (codeGenConfig.getExternalConfig().generateTests()) {
+			GenerateTests tests = new GenerateTests(api, codeGenConfig);
+			tests.create();
+		}
 	}
 }

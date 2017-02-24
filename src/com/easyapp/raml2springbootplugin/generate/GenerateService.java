@@ -14,7 +14,7 @@ import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 
 public class GenerateService {
 	private final Api api;
-	private CodeGenerator generator;
+	private final CodeGenerator generator;
 
 	private String getPathVariables(final List<TypeDeclaration> uriParameters) {
 		if (uriParameters.isEmpty()) {
@@ -95,7 +95,7 @@ public class GenerateService {
 		final String apiTitle = api.title().value().replaceAll(" ", "");
 
 		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage() + ".service",
-				Arrays.asList("@Service"), false, apiTitle + "Service", null, null);
+				Arrays.asList("@Service"), false, apiTitle + "Service", null, null, codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("org.springframework.stereotype.Service");
 	}
 

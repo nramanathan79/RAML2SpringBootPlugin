@@ -98,7 +98,8 @@ public class GenerateRestController {
 				return "@RequestBody final String requestBody";
 			} else {
 				return "@RequestBody final "
-						+ generator.getJavaType((method.body().get(0).type().isEmpty() ? "string" : method.body().get(0).type()),
+						+ generator.getJavaType(
+								(method.body().get(0).type().isEmpty() ? "string" : method.body().get(0).type()),
 								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 						+ " " + GeneratorUtil.getRequestBodyVariableName(method);
 			}
@@ -207,7 +208,7 @@ public class GenerateRestController {
 		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
 		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
 				codeGenConfig.getBasePackage() + ".restcontroller", Arrays.asList("@RestController"), false,
-				apiTitle + "RestController", null, null);
+				apiTitle + "RestController", null, null, codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("org.springframework.web.bind.annotation.RestController");
 	}
 
@@ -219,6 +220,23 @@ public class GenerateRestController {
 		generator.addCodeBlock(members.toString());
 		generator.addImport(codeGenConfig.getBasePackage() + ".service." + apiTitle + "Service");
 		generator.addImport("org.springframework.beans.factory.annotation.Autowired");
+
+		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
+			final StringBuffer healthCheckMethod = new StringBuffer();
+			healthCheckMethod.append(CodeGenerator.INDENT1)
+					.append("@RequestMapping(path = \"/healthCheck\", method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)")
+					.append(CodeGenerator.NEWLINE);
+			healthCheckMethod.append(CodeGenerator.INDENT1)
+					.append("public @ResponseBody String getHealthCheck() throws Exception {")
+					.append(CodeGenerator.NEWLINE);
+			healthCheckMethod.append(CodeGenerator.INDENT2).append("return \"GOOD\";").append(CodeGenerator.NEWLINE);
+			healthCheckMethod.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+			generator.addCodeBlock(healthCheckMethod.toString());
+			generator.addImport("org.springframework.web.bind.annotation.RequestMapping");
+			generator.addImport("org.springframework.web.bind.annotation.RequestMethod");
+			generator.addImport("org.springframework.http.MediaType");
+			generator.addImport("org.springframework.web.bind.annotation.ResponseBody");
+		}
 
 		api.resources().stream().forEach(resource -> createResourceMethods(resource));
 
