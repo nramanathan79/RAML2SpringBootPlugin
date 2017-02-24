@@ -84,8 +84,7 @@ public class GenerateTests {
 
 	public void create() {
 		api.resources().stream().forEach(resource -> createResourceMethods(resource));
-		generator.addCodeBlock(members.toString());
-		generator.addCodeBlock(methods.toString());
+		generator.addCodeBlock(members.toString() + methods.toString());
 		generator.writeCode();
 	}
 }
