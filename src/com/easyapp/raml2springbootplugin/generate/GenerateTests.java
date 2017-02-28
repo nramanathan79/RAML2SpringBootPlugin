@@ -23,6 +23,26 @@ public class GenerateTests {
 	private final StringBuffer members = new StringBuffer();
 	private final StringBuffer methods = new StringBuffer();
 
+	private String getHttpMethod(final String method) {
+		if ("get".equalsIgnoreCase(method)) {
+			return "HttpMethod.GET";
+		} else if ("post".equalsIgnoreCase(method)) {
+			return "HttpMethod.POST";
+		} else if ("put".equalsIgnoreCase(method)) {
+			return "HttpMethod.PUT";
+		} else if ("patch".equalsIgnoreCase(method)) {
+			return "HttpMethod.PATCH";
+		} else if ("delete".equalsIgnoreCase(method)) {
+			return "HttpMethod.DELETE";
+		} else if ("head".equalsIgnoreCase(method)) {
+			return "HttpMethod.HEAD";
+		} else if ("options".equalsIgnoreCase(method)) {
+			return "HttpMethod.OPTIONS";
+		} else {
+			return "HttpMethod.TRACE";
+		}
+	}
+
 	private List<String> getPathVariables(final List<TypeDeclaration> uriParameters) {
 		if (uriParameters.isEmpty()) {
 			return new ArrayList<>();
@@ -150,10 +170,8 @@ public class GenerateTests {
 			final String uriVariables = methodVariables.get("uri").isEmpty() ? null
 					: methodVariables.get("uri").stream().map(variable -> variable.split(" ")[1])
 							.collect(Collectors.joining(", "));
-			final String bodyVariable = methodVariables.get("body").isEmpty() ? null
-					: methodVariables.get("body").get(0);
-			final String queryParameters = methodVariables.get("query").isEmpty() ? "" : "?" + methodVariables.get("query").stream().map(variable -> variable.split(" ")[1]).collect(Collectors.joining("&"));
-
+			final String bodyVariable = !methodVariables.containsKey("body") || methodVariables.get("body").isEmpty()
+					? null : methodVariables.get("body").get(0).split(" ")[1];
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
@@ -163,20 +181,53 @@ public class GenerateTests {
 				final String methodName = "test" + GeneratorUtil.getTitleCase(method.method(), "-")
 						+ resource.displayName().value().replaceAll(" ", "") + response.code().value();
 
-				methods.append(CodeGenerator.INDENT1).append("@Test").append(CodeGenerator.NEWLINE);
+				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("@Test")
+						.append(CodeGenerator.NEWLINE);
 				methods.append(CodeGenerator.INDENT1).append("public void ").append(methodName).append("() {")
 						.append(CodeGenerator.NEWLINE);
-				methods.append(CodeGenerator.INDENT2).append("final ResponseEntity<").append(responseType)
-						.append("> response = restTemplate.exchange(");
-				// if (method.method() == "")
-				// getForEntity(baseURI + healthCheckEndPoint, String.class);")
-				// .append(CodeGenerator.NEWLINE);
 				methods.append(CodeGenerator.INDENT2)
-						.append("assertThat(response.getStatusCode().value(), equalTo(200));")
-						.append(CodeGenerator.NEWLINE);
+						.append("final UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseURI + ")
+						.append(resourceEndPointVariable).append(");").append(CodeGenerator.NEWLINE);
+
+				methodVariables.get("query").stream().map(variable -> variable.split(" ")[1]).forEach(queryParam -> {
+					methods.append(CodeGenerator.INDENT2).append("uriBuilder.queryParam(\"").append(queryParam)
+							.append("\", ").append(queryParam).append(");").append(CodeGenerator.NEWLINE);
+				});
+
+				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("final ResponseEntity<")
+						.append(responseType)
+						.append("> response = restTemplate.exchange(uriBuilder.build().encode().toUriString(), ")
+						.append(getHttpMethod(method.method())).append(", ");
+
+				if (bodyVariable == null) {
+					methods.append("null, ");
+				} else {
+					methods.append("new HttpEntity<>(").append(bodyVariable).append("), ");
+				}
+
+				if (responseType.contains("<")) {
+					methods.append("new ParameterizedTypeReference<").append(responseType).append(">() { }");
+					generator.addImport("org.springframework.core.ParameterizedTypeReference");
+				} else {
+					methods.append(responseType).append(".class");
+				}
+
+				if (uriVariables != null) {
+					methods.append(", ").append(uriVariables);
+				}
+
+				methods.append(");").append(CodeGenerator.NEWLINE);
+
+				methods.append(CodeGenerator.INDENT2).append("assertThat(response.getStatusCode().value(), equalTo(")
+						.append(response.code().value()).append("));").append(CodeGenerator.NEWLINE);
+				methods.append(CodeGenerator.INDENT2).append("// TODO: Additional Tests").append(CodeGenerator.NEWLINE);
 				methods.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+
 				generator.addImport("org.junit.Test");
+				generator.addImport("org.springframework.web.util.UriComponentsBuilder");
 				generator.addImport("org.springframework.http.ResponseEntity");
+				generator.addImport("org.springframework.http.HttpMethod");
+				generator.addImport("org.springframework.http.HttpEntity");
 				generator.addImport("static org.junit.Assert.assertThat");
 				generator.addImport("static org.hamcrest.CoreMatchers.equalTo");
 			});
