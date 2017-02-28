@@ -34,7 +34,7 @@ public class GenerateExceptions {
 		responseCodes.stream().forEach(responseCode -> {
 			String exceptionClassName = GeneratorUtil.getExceptionClassName(responseCode);
 			CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-					codeGenConfig.getBasePackage() + ".exception", null, false, exceptionClassName, "Exception", null, codeGenConfig.getExternalConfig().overwriteFiles());
+					codeGenConfig.getBasePackage(), "exception", null, false, exceptionClassName, "Exception", null, codeGenConfig.getExternalConfig().overwriteFiles());
 
 			final StringBuffer block = new StringBuffer();
 			block.append(CodeGenerator.INDENT1).append("private static final long serialVersionUID = 1L;")

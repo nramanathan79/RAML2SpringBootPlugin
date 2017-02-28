@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
+import org.springframework.util.StringUtils;
 
 public class CodeGenerator {
 	public static final String NEWLINE = System.getProperty("line.separator");
@@ -26,6 +27,7 @@ public class CodeGenerator {
 	public static final String DEFAULT_TRANSPORT_PACKAGE = "transport";
 	public static final String ERROR_TRANSPORT_PACKAGE = "error";
 
+	private final String basePackageName;
 	private final String packageName;
 	private final Path codeFilePath;
 	private final Map<String, Set<String>> imports = new HashMap<>();
@@ -55,8 +57,7 @@ public class CodeGenerator {
 				addImport(strippedFieldType.replaceAll("-", "."));
 				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
 			} else {
-				addImport(packageName.substring(0, packageName.lastIndexOf('.')) + "." + transportPackageName + "."
-						+ strippedFieldType);
+				addImport(basePackageName + "." + transportPackageName + "." + strippedFieldType);
 				return strippedFieldType;
 			}
 		}
@@ -73,10 +74,12 @@ public class CodeGenerator {
 		}
 	}
 
-	public CodeGenerator(final String sourceDirectory, final String packageName, final List<String> classAnnotations,
-			final boolean isInterface, final String className, final String extendsFrom,
-			final List<String> implementsList, final boolean overwriteFile) {
-		this.packageName = packageName;
+	public CodeGenerator(final String sourceDirectory, final String basePackageName, final String packageNameSuffix,
+			final List<String> classAnnotations, final boolean isInterface, final String className,
+			final String extendsFrom, final List<String> implementsList, final boolean overwriteFile) {
+		this.basePackageName = basePackageName;
+		this.packageName = StringUtils.isEmpty(packageNameSuffix) ? basePackageName
+				: basePackageName + "." + packageNameSuffix;
 
 		final File directory = new File(sourceDirectory + File.separator + packageName.replace(".", File.separator));
 
@@ -85,11 +88,11 @@ public class CodeGenerator {
 		}
 
 		String filePath = directory + File.separator + className + ".java";
-		
+
 		if (Files.exists(Paths.get(filePath)) && !overwriteFile) {
 			filePath += ".MERGE";
 		}
-		
+
 		this.codeFilePath = Paths.get(filePath);
 		this.codeBlock
 				.append(classAnnotations == null ? "" : classAnnotations.stream().collect(Collectors.joining(NEWLINE)))
@@ -151,8 +154,8 @@ public class CodeGenerator {
 		final StringBuffer fields = new StringBuffer();
 
 		members.stream().sorted(byName).forEach(member -> {
-			fields.append(INDENT1).append("private ").append(getJavaType(member.type(), transportPackageName)).append(" ")
-					.append(member.name()).append(";").append(NEWLINE);
+			fields.append(INDENT1).append("private ").append(getJavaType(member.type(), transportPackageName))
+					.append(" ").append(member.name()).append(";").append(NEWLINE);
 		});
 
 		codeBlocks.add(fields.toString());

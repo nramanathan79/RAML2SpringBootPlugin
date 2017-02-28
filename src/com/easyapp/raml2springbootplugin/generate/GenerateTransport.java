@@ -37,7 +37,7 @@ public class GenerateTransport {
 
 	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage() + "." + transportPackageName, null, false,
+				codeGenConfig.getBasePackage(), transportPackageName, null, false,
 				"object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
 				Arrays.asList("Serializable"), codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("java.io.Serializable");
