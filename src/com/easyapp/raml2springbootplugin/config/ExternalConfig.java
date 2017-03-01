@@ -8,9 +8,18 @@ public class ExternalConfig {
 	private DockerConfig dockerConfig;
 	
 	public class DockerConfig {
+		private String dockerHost = "http://localhost:2375";
 		private String dockerBaseImageName = "java:8";
 		private String dockerImageName;
 		
+		public String getDockerHost() {
+			return dockerHost;
+		}
+
+		public void setDockerHost(final String dockerHost) {
+			this.dockerHost = dockerHost;
+		}
+
 		public String getDockerBaseImageName() {
 			return dockerBaseImageName;
 		}

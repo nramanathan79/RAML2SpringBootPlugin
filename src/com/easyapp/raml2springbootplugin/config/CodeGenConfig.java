@@ -64,10 +64,6 @@ public class CodeGenConfig {
 				e.printStackTrace();
 			}
 		}
-
-		if (externalConfig == null) {
-			externalConfig = new ExternalConfig();
-		}
 	}
 
 	public CodeGenConfig(final String absoluteRamlFilePath, final String relativeRamlFilePath) {
@@ -138,6 +134,11 @@ public class CodeGenConfig {
 			return "Base Package for the Application is missing";
 		}
 
+		if (Files.exists(Paths.get(this.projectDirectory + "/src/main/resources/config.json"))
+				&& externalConfig == null) {
+			return "config.json file invalid";
+		}
+
 		if (externalConfig.dockerize()) {
 			if (externalConfig.getDockerConfig() == null) {
 				return "Docker Configuration is missing";
@@ -149,7 +150,8 @@ public class CodeGenConfig {
 
 			if (!externalConfig.getDockerConfig().getDockerBaseImageName()
 					.equals(externalConfig.getDockerConfig().getDockerBaseImageName().toLowerCase())) {
-				return "Docker Base Image is invalid (Docker Images should be all lower case)";
+				return "Docker Base Image " + externalConfig.getDockerConfig().getDockerBaseImageName()
+						+ " is invalid (Docker Images should be all lower case)";
 			}
 
 			if (StringUtils.isEmpty(externalConfig.getDockerConfig().getDockerImageName())) {
@@ -158,7 +160,8 @@ public class CodeGenConfig {
 
 			if (!externalConfig.getDockerConfig().getDockerImageName()
 					.equals(externalConfig.getDockerConfig().getDockerImageName().toLowerCase())) {
-				return "Docker Base Image is invalid (Docker Images should be all lower case)";
+				return "Docker Image " + externalConfig.getDockerConfig().getDockerImageName()
+						+ " is invalid (Docker Images should be all lower case)";
 			}
 		}
 

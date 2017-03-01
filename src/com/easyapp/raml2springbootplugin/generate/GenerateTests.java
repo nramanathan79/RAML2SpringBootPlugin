@@ -167,7 +167,8 @@ public class GenerateTests {
 
 		resource.methods().stream().forEach(method -> {
 			final Map<String, List<String>> methodVariables = getVariables(method);
-			final String uriVariables = methodVariables.get("uri").isEmpty() ? null
+			final String uriVariables = !methodVariables.containsKey("uri") || methodVariables.get("uri").isEmpty()
+					? null
 					: methodVariables.get("uri").stream().map(variable -> variable.split(" ")[1])
 							.collect(Collectors.joining(", "));
 			final String bodyVariable = !methodVariables.containsKey("body") || methodVariables.get("body").isEmpty()
@@ -189,10 +190,14 @@ public class GenerateTests {
 						.append("final UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseURI + ")
 						.append(resourceEndPointVariable).append(");").append(CodeGenerator.NEWLINE);
 
-				methodVariables.get("query").stream().map(variable -> variable.split(" ")[1]).forEach(queryParam -> {
-					methods.append(CodeGenerator.INDENT2).append("uriBuilder.queryParam(\"").append(queryParam)
-							.append("\", ").append(queryParam).append(");").append(CodeGenerator.NEWLINE);
-				});
+				if (methodVariables.containsKey("query")) {
+					methodVariables.get("query").stream().map(variable -> variable.split(" ")[1])
+							.forEach(queryParam -> {
+								methods.append(CodeGenerator.INDENT2).append("uriBuilder.queryParam(\"")
+										.append(queryParam).append("\", ").append(queryParam).append(");")
+										.append(CodeGenerator.NEWLINE);
+							});
+				}
 
 				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("final ResponseEntity<")
 						.append(responseType)

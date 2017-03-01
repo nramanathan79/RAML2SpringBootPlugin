@@ -37,5 +37,10 @@ public class RAML2SpringBoot {
 			GenerateTests tests = new GenerateTests(api, codeGenConfig);
 			tests.create();
 		}
+		
+		if (codeGenConfig.getExternalConfig().dockerize()) {
+			GenerateDocker docker = new GenerateDocker(codeGenConfig);
+			docker.create();
+		}
 	}
 }
