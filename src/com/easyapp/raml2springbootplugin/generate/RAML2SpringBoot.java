@@ -42,5 +42,7 @@ public class RAML2SpringBoot {
 			GenerateDocker docker = new GenerateDocker(codeGenConfig);
 			docker.create();
 		}
+		
+		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
 	}
 }

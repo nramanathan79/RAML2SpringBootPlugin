@@ -1,12 +1,20 @@
 package com.easyapp.raml2springbootplugin.generate;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 import org.springframework.http.HttpStatus;
+
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 
 public class GeneratorUtil {
 	private static void addURIParameters(final Resource resource, final List<TypeDeclaration> uriParameters) {
@@ -15,7 +23,7 @@ public class GeneratorUtil {
 			uriParameters.addAll(resource.uriParameters());
 		}
 	}
-	
+
 	public static String getRequestBodyVariableName(final Method method) {
 		if (method.body().isEmpty()) {
 			return "requestBody";
@@ -29,10 +37,10 @@ public class GeneratorUtil {
 	public static List<TypeDeclaration> getURIParameters(final Resource resource) {
 		List<TypeDeclaration> uriParameters = new ArrayList<>();
 		addURIParameters(resource, uriParameters);
-		
+
 		return uriParameters;
 	}
-	
+
 	public static String getTitleCase(final String text, final String delimiter) {
 		String returnValue = "";
 
@@ -45,6 +53,24 @@ public class GeneratorUtil {
 		}
 
 		return returnValue;
+	}
+
+	public static void validateAndUpdateMavenDependency(final CodeGenConfig codeGenConfig) throws Exception {
+		final MavenXpp3Reader mavenReader = new MavenXpp3Reader();
+		final Model pomModel = mavenReader.read(new FileReader(codeGenConfig.getPomFilePath()));
+		final Dependency starterDependency = pomModel.getDependencies().stream()
+				.filter(dependency -> dependency.getArtifactId().equals("spring-boot-starter")).findAny().orElse(null);
+
+		if (starterDependency != null) {
+			starterDependency.setArtifactId("spring-boot-starter-web");
+			final MavenXpp3Writer writer = new MavenXpp3Writer();
+
+			if (codeGenConfig.getExternalConfig().overwriteFiles()) {
+				writer.write(new FileWriter(codeGenConfig.getPomFilePath()), pomModel);
+			} else {
+				writer.write(new FileWriter(codeGenConfig.getPomFilePath() + ".MERGE"), pomModel);
+			}
+		}
 	}
 
 	public static String getHttpStatusPhrase(final String httpCode) {

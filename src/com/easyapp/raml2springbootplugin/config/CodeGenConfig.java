@@ -17,6 +17,7 @@ public class CodeGenConfig {
 	private String sourceDirectory = null;
 	private String testDirectory = null;
 	private String testFilePath = null;
+	private String pomFilePath = null;
 	private String testClassName = null;
 	private String basePackage = null;
 	private ExternalConfig externalConfig = null;
@@ -72,6 +73,7 @@ public class CodeGenConfig {
 				absoluteRamlFilePath.indexOf(relativeRamlFilePath) - 1);
 		this.sourceDirectory = this.projectDirectory + "/src/main/java";
 		this.testDirectory = this.projectDirectory + "/src/test/java";
+		this.pomFilePath = this.projectDirectory + "/pom.xml";
 		getBasePackage(this.sourceDirectory);
 		getTestClass(this.testDirectory);
 		getExternalConfig(this.projectDirectory + "/src/main/resources/config.json");
@@ -124,6 +126,10 @@ public class CodeGenConfig {
 
 		if (!Files.isWritable(Paths.get(testFilePath))) {
 			return "Test file: " + testFilePath + " is not writable";
+		}
+
+		if (!Files.exists(Paths.get(pomFilePath))) {
+			return "Maven POM file: " + pomFilePath + " does NOT exist";
 		}
 
 		if (testClassName == null) {
@@ -190,6 +196,14 @@ public class CodeGenConfig {
 
 	public String getTestFilePath() {
 		return testFilePath;
+	}
+
+	public String getPomFilePath() {
+		return pomFilePath;
+	}
+
+	public void setPomFilePath(final String pomFilePath) {
+		this.pomFilePath = pomFilePath;
 	}
 
 	public String getTestClassName() {

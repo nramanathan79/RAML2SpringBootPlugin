@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/classworlds-1.1-alpha-2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-3.8.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-manager-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-model-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-plugin-registry-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-profile-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-project-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-repository-metadata-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-settings-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-container-default-1.0-alpha-9-stable-1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-interpolation-1.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-utils-1.5.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wagon-provider-api-1.0-beta-6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/activation-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/annotations-3.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/btf-1.2.jar"/>
