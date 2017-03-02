@@ -1,11 +1,13 @@
 package com.easyapp.raml2springbootplugin.config;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
 import org.springframework.util.StringUtils;
 
@@ -20,6 +22,7 @@ public class CodeGenConfig {
 	private String pomFilePath = null;
 	private String testClassName = null;
 	private String basePackage = null;
+	private Properties applicationProperties = new Properties();
 	private ExternalConfig externalConfig = null;
 
 	private void getBasePackage(final String directoryPath) {
@@ -67,6 +70,17 @@ public class CodeGenConfig {
 		}
 	}
 
+	private void getApplicationProperties(final String applicationPropertiesFilePath) {
+		if (Files.exists(Paths.get(applicationPropertiesFilePath))
+				&& Files.isReadable(Paths.get(applicationPropertiesFilePath))) {
+			try {
+				applicationProperties.load(new FileReader(applicationPropertiesFilePath));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public CodeGenConfig(final String absoluteRamlFilePath, final String relativeRamlFilePath) {
 		this.ramlFilePath = absoluteRamlFilePath;
 		this.projectDirectory = absoluteRamlFilePath.substring(0,
@@ -76,6 +90,7 @@ public class CodeGenConfig {
 		this.pomFilePath = this.projectDirectory + "/pom.xml";
 		getBasePackage(this.sourceDirectory);
 		getTestClass(this.testDirectory);
+		getApplicationProperties(this.projectDirectory + "/src/main/resources/application.properties");
 		getExternalConfig(this.projectDirectory + "/src/main/resources/config.json");
 	}
 
@@ -145,33 +160,25 @@ public class CodeGenConfig {
 			return "config.json file invalid";
 		}
 
-		if (externalConfig.dockerize()) {
-			if (externalConfig.getDockerConfig() == null) {
-				return "Docker Configuration is missing";
+		if (externalConfig.hasJpaConfig()) {
+			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.driver-class-name"))) {
+				return "Datasource property spring.datasource.driver-class-name is missing in application.properties";
 			}
 
-			if (StringUtils.isEmpty(externalConfig.getDockerConfig().getDockerBaseImageName())) {
-				return "Docker Base Image is missing";
+			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.url"))) {
+				return "Datasource property spring.datasource.url is missing in application.properties";
 			}
 
-			if (!externalConfig.getDockerConfig().getDockerBaseImageName()
-					.equals(externalConfig.getDockerConfig().getDockerBaseImageName().toLowerCase())) {
-				return "Docker Base Image " + externalConfig.getDockerConfig().getDockerBaseImageName()
-						+ " is invalid (Docker Images should be all lower case)";
+			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.username"))) {
+				return "Datasource property spring.datasource.username is missing in application.properties";
 			}
 
-			if (StringUtils.isEmpty(externalConfig.getDockerConfig().getDockerImageName())) {
-				return "Docker Image is missing";
-			}
-
-			if (!externalConfig.getDockerConfig().getDockerImageName()
-					.equals(externalConfig.getDockerConfig().getDockerImageName().toLowerCase())) {
-				return "Docker Image " + externalConfig.getDockerConfig().getDockerImageName()
-						+ " is invalid (Docker Images should be all lower case)";
+			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.password"))) {
+				return "Datasource property spring.datasource.password is missing in application.properties";
 			}
 		}
 
-		return null;
+		return externalConfig.getConfigError();
 	}
 
 	public String getRamlFilePath() {
@@ -202,15 +209,15 @@ public class CodeGenConfig {
 		return pomFilePath;
 	}
 
-	public void setPomFilePath(final String pomFilePath) {
-		this.pomFilePath = pomFilePath;
-	}
-
 	public String getTestClassName() {
 		return testClassName;
 	}
 
 	public ExternalConfig getExternalConfig() {
 		return externalConfig;
+	}
+
+	public String getApplicationProperty(final String propertyName) {
+		return applicationProperties.getProperty(propertyName);
 	}
 }

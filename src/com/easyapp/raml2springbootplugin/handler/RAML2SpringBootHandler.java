@@ -41,26 +41,22 @@ public class RAML2SpringBootHandler extends AbstractHandler {
 				}
 			}
 		}
-
-		return null;
+		
+		if (codeGenConfig == null) {
+			return "Could not get all the configuration for the RAML file";
+		} else {
+			return codeGenConfig.getConfigError();
+		}
 	}
 
 	@Override
 	public Object execute(final ExecutionEvent event) throws ExecutionException {
 		final Shell shell = HandlerUtil.getActiveShell(event);
 
-		String errorMessage = getCodeGenConfig(HandlerUtil.getActiveMenuSelection(event));
+		try {
+			final String errorMessage = getCodeGenConfig(HandlerUtil.getActiveMenuSelection(event));
 
-		if (errorMessage == null) {
-			if (codeGenConfig == null) {
-				errorMessage = "Could not get the RAML file configuration";
-			} else {
-				errorMessage = codeGenConfig.getConfigError();
-			}
-		}
-
-		if (errorMessage == null) {
-			try {
+			if (errorMessage == null) {
 				RAML2SpringBoot.generate(codeGenConfig);
 
 				MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
@@ -73,17 +69,17 @@ public class RAML2SpringBootHandler extends AbstractHandler {
 						e.printStackTrace();
 					}
 				}
-			} catch (final Throwable e) {
-				final StringWriter writer = new StringWriter();
-				e.printStackTrace(new PrintWriter(writer));
-				e.printStackTrace();
-
+			} else {
 				MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
-						"Error encountered while generating Spring Boot code, Error Message: " + writer.toString());
+						"RAML to Spring Boot was NOT executed because " + errorMessage);
 			}
-		} else {
+		} catch (final Throwable e) {
+			final StringWriter writer = new StringWriter();
+			e.printStackTrace(new PrintWriter(writer));
+			e.printStackTrace();
+
 			MessageDialog.openInformation(shell, "RAML2SpringBootPlugin",
-					"RAML to Spring Boot was NOT executed because " + errorMessage);
+					"Error encountered while generating Spring Boot code, Error Message: " + writer.toString());
 		}
 
 		return null;

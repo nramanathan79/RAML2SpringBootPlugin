@@ -20,11 +20,11 @@ import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 
 public class GenerateDocker {
 	private final CodeGenConfig codeGenConfig;
-	
+
 	private static Xpp3Dom newElement(final String elementName, final String elementValue) {
 		final Xpp3Dom element = new Xpp3Dom(elementName);
 		element.setValue(elementValue);
-		
+
 		return element;
 	}
 
@@ -59,7 +59,7 @@ public class GenerateDocker {
 		final MavenXpp3Reader mavenReader = new MavenXpp3Reader();
 		final Model pomModel = mavenReader.read(new FileReader(codeGenConfig.getPomFilePath()));
 		final List<Plugin> plugins = pomModel.getBuild().getPlugins();
-		
+
 		// Force regeneration
 		plugins.removeIf(plugin -> plugin.getKey().equals(Plugin.constructKey("com.spotify", "docker-maven-plugin")));
 
@@ -69,9 +69,14 @@ public class GenerateDocker {
 		dockerPlugin.setVersion("0.4.13");
 
 		final Xpp3Dom dockerConfig = new Xpp3Dom("configuration");
-		dockerConfig.addChild(newElement("imageName", codeGenConfig.getExternalConfig().getDockerConfig().getDockerImageName()));
-		dockerConfig.addChild(newElement("dockerHost", codeGenConfig.getExternalConfig().getDockerConfig().getDockerHost()));
+		dockerConfig.addChild(
+				newElement("imageName", codeGenConfig.getExternalConfig().getDockerConfig().getDockerImageName()));
 		dockerConfig.addChild(newElement("dockerDirectory", "docker"));
+
+		if (codeGenConfig.getExternalConfig().getDockerConfig().getDockerHost() != null) {
+			dockerConfig.addChild(
+					newElement("dockerHost", codeGenConfig.getExternalConfig().getDockerConfig().getDockerHost()));
+		}
 
 		final Xpp3Dom dockerResource = new Xpp3Dom("resource");
 		dockerResource.addChild(newElement("targetPath", "/"));
@@ -86,11 +91,11 @@ public class GenerateDocker {
 
 		dockerConfig.addChild(dockerResources);
 		dockerConfig.addChild(buildArgs);
-		
+
 		dockerPlugin.setConfiguration(dockerConfig);
 
 		plugins.add(dockerPlugin);
-		
+
 		if (!pomModel.getProperties().containsKey("user.id")) {
 			pomModel.addProperty("user.id", "api");
 		}
