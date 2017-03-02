@@ -86,6 +86,8 @@ public class GenerateDocker {
 
 		dockerConfig.addChild(dockerResources);
 		dockerConfig.addChild(buildArgs);
+		
+		dockerPlugin.setConfiguration(dockerConfig);
 
 		plugins.add(dockerPlugin);
 		
