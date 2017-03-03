@@ -11,11 +11,11 @@ public class ExternalConfig {
 	private DockerConfig dockerConfig = null;
 	private JpaConfig jpaConfig = null;
 
-	public class DockerConfig {
+	public static class DockerConfig {
 		private String dockerHost = null;
 		private String dockerBaseImageName = "java:8";
 		private String dockerImageName;
-
+		
 		public String getDockerHost() {
 			return dockerHost;
 		}
@@ -62,16 +62,18 @@ public class ExternalConfig {
 		}
 	}
 
-	public class JpaConfig {
+	public static class JpaConfig {
 		private List<Table> tables = null;
 
-		public class Table {
+		public static class Table {
 			private String tableName = null;
 			private String collectionResource = null;
 			private String uriPath = null;
+			private String sequenceName = null;
+			private int sequenceIncrement = 1;
 			private List<Relationship> relationships = null;
 
-			public class Relationship {
+			public static class Relationship {
 				private String relationshipType = null;
 				private String fetchType = "FetchType.LAZY";
 				private String cascadeType = "CascadeType.DETACH";
@@ -80,7 +82,7 @@ public class ExternalConfig {
 				private String mappedBy = null;
 				private String columnName = null;
 				private String referencedColumnName = null;
-
+				
 				public String getRelationshipType() {
 					return relationshipType;
 				}
@@ -194,7 +196,7 @@ public class ExternalConfig {
 					return null;
 				}
 			}
-
+			
 			public String getTableName() {
 				return tableName;
 			}
@@ -217,6 +219,22 @@ public class ExternalConfig {
 
 			public void setUriPath(final String uriPath) {
 				this.uriPath = uriPath;
+			}
+
+			public String getSequenceName() {
+				return sequenceName;
+			}
+
+			public void setSequenceName(final String sequenceName) {
+				this.sequenceName = sequenceName;
+			}
+
+			public int getSequenceIncrement() {
+				return sequenceIncrement;
+			}
+
+			public void setSequenceIncrement(final int sequenceIncrement) {
+				this.sequenceIncrement = sequenceIncrement;
 			}
 
 			public List<Relationship> getRelationships() {
@@ -248,7 +266,7 @@ public class ExternalConfig {
 				return null;
 			}
 		}
-
+		
 		public List<Table> getTables() {
 			return tables;
 		}
@@ -265,10 +283,6 @@ public class ExternalConfig {
 						.findFirst().orElse(null);
 			}
 		}
-	}
-
-	public ExternalConfig() {
-
 	}
 
 	public boolean generateTests() {

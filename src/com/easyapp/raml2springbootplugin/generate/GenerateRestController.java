@@ -14,6 +14,7 @@ import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 
 public class GenerateRestController {
 	private final Api api;

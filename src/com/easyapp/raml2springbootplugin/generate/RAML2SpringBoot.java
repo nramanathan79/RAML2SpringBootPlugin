@@ -8,6 +8,7 @@ import org.raml.v2.api.RamlModelResult;
 import org.raml.v2.api.model.v10.api.Api;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 
 public class RAML2SpringBoot {
 	public static void generate(final CodeGenConfig codeGenConfig)
@@ -44,5 +45,13 @@ public class RAML2SpringBoot {
 		}
 		
 		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
+		
+		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
+			GenerateEntities entities = new GenerateEntities(codeGenConfig);
+			entities.create();
+			
+			//GenerateRepositories repositories = new GenerateRepositories(codeGenConfig);
+			//repositories.create();
+		}
 	}
 }

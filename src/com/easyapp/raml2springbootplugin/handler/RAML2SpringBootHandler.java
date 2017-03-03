@@ -24,7 +24,7 @@ public class RAML2SpringBootHandler extends AbstractHandler {
 	private CodeGenConfig codeGenConfig = null;
 	private IProject project = null;
 
-	private String getCodeGenConfig(final ISelection selection) {
+	private String getCodeGenConfig(final ISelection selection) throws Exception {
 		if (selection != null && selection instanceof IStructuredSelection) {
 			final IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			final Object selectedObj = structuredSelection.getFirstElement();

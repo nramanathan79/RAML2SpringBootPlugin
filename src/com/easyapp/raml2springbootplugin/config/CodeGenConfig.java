@@ -59,29 +59,21 @@ public class CodeGenConfig {
 		}
 	}
 
-	private void getExternalConfig(final String configFilePath) {
+	private void getExternalConfig(final String configFilePath) throws Exception {
 		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
-			try {
-				final ObjectMapper mapper = new ObjectMapper();
-				externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			final ObjectMapper mapper = new ObjectMapper();
+			externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
 		}
 	}
 
-	private void getApplicationProperties(final String applicationPropertiesFilePath) {
+	private void getApplicationProperties(final String applicationPropertiesFilePath) throws Exception {
 		if (Files.exists(Paths.get(applicationPropertiesFilePath))
 				&& Files.isReadable(Paths.get(applicationPropertiesFilePath))) {
-			try {
-				applicationProperties.load(new FileReader(applicationPropertiesFilePath));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			applicationProperties.load(new FileReader(applicationPropertiesFilePath));
 		}
 	}
 
-	public CodeGenConfig(final String absoluteRamlFilePath, final String relativeRamlFilePath) {
+	public CodeGenConfig(final String absoluteRamlFilePath, final String relativeRamlFilePath) throws Exception {
 		this.ramlFilePath = absoluteRamlFilePath;
 		this.projectDirectory = absoluteRamlFilePath.substring(0,
 				absoluteRamlFilePath.indexOf(relativeRamlFilePath) - 1);
@@ -157,7 +149,7 @@ public class CodeGenConfig {
 
 		if (Files.exists(Paths.get(this.projectDirectory + "/src/main/resources/config.json"))
 				&& externalConfig == null) {
-			return "config.json file invalid";
+			return "config.json file is invalid";
 		}
 
 		if (externalConfig.hasJpaConfig()) {

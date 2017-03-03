@@ -1,4 +1,4 @@
-package com.easyapp.raml2springbootplugin.generate;
+package com.easyapp.raml2springbootplugin.generate.util;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -50,6 +50,16 @@ public class GeneratorUtil {
 			for (String word : words) {
 				returnValue += Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase();
 			}
+		}
+
+		return returnValue;
+	}
+
+	public static String getCamelCase(final String text, final String delimiter) {
+		String returnValue = getTitleCase(text, delimiter);
+
+		if (returnValue.length() > 0) {
+			returnValue = Character.toLowerCase(returnValue.charAt(0)) + returnValue.substring(1);
 		}
 
 		return returnValue;

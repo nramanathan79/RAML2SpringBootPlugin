@@ -8,6 +8,7 @@ import org.raml.v2.api.model.v10.api.Api;
 import org.raml.v2.api.model.v10.resources.Resource;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 
 public class GenerateExceptions {
 	private final Api api;
