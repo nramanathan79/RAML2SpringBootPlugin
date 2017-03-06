@@ -269,10 +269,10 @@ public class CodeGenerator {
 
 				if (column.getDataType() != JDBCType.JAVA_OBJECT) {
 					fields.append(NEWLINE).append(INDENT1).append("@Column(name = \"").append(column.getColumnName())
-							.append("\")").append(NEWLINE);
+							.append("\")");
 				}
 
-				fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName).append(";")
+				fields.append(NEWLINE).append(INDENT1).append("private ").append(memberType).append(" ").append(memberName).append(";")
 						.append(NEWLINE);
 
 				methods.append(NEWLINE).append(INDENT1).append("public ").append(memberType).append(" get")
