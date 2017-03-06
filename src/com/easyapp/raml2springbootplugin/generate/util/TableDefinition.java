@@ -64,8 +64,10 @@ public class TableDefinition {
 			final ColumnDefinition embeddedIdColumn = new ColumnDefinition("ID", JDBCType.JAVA_OBJECT, 0, false, false);
 			embeddedIdColumn.setPrimaryKeyOrder(1);
 
-			return Stream.concat(columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder),
-					Stream.of(embeddedIdColumn)).collect(Collectors.toList());
+			return Stream
+					.concat(Stream.of(embeddedIdColumn),
+							columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder))
+					.collect(Collectors.toList());
 		} else {
 			return null;
 		}
