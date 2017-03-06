@@ -3,6 +3,7 @@ package com.easyapp.raml2springbootplugin.generate.util;
 import java.sql.JDBCType;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TableDefinition {
@@ -24,7 +25,11 @@ public class TableDefinition {
 	}
 
 	public List<ColumnDefinition> getColumns() {
-		return columns;
+		if (columns != null) {
+			return columns.stream().sorted(byColumnOrder).collect(Collectors.toList());
+		} else {
+			return null;
+		}
 	}
 
 	public void setColumns(final List<ColumnDefinition> columns) {
@@ -43,28 +48,24 @@ public class TableDefinition {
 		return false;
 	}
 
-	public Stream<ColumnDefinition> getColumnStream() {
+	public List<ColumnDefinition> getKeyColumns() {
 		if (columns != null) {
-			return columns.stream().sorted(byColumnOrder);
+			return columns.stream().filter(ColumnDefinition::isInPrimaryKey).sorted(byColumnOrder)
+					.map(column -> new ColumnDefinition(column.getColumnName(), column.getDataType(),
+							column.getColumnOrder(), column.isNullable(), column.isAutoIncrement()))
+					.collect(Collectors.toList());
 		} else {
 			return null;
 		}
 	}
 
-	public Stream<ColumnDefinition> getKeyColumnStream() {
-		if (columns != null) {
-			return columns.stream().filter(ColumnDefinition::isInPrimaryKey).sorted(byColumnOrder);
-		} else {
-			return null;
-		}
-	}
-
-	public Stream<ColumnDefinition> getNonKeyColumnStream() {
+	public List<ColumnDefinition> getNonKeyColumns() {
 		if (columns != null) {
 			final ColumnDefinition embeddedIdColumn = new ColumnDefinition("ID", JDBCType.JAVA_OBJECT, 0, false, false);
 			embeddedIdColumn.setPrimaryKeyOrder(1);
 
-			return Stream.concat(columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder), Stream.of(embeddedIdColumn));
+			return Stream.concat(columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder),
+					Stream.of(embeddedIdColumn)).collect(Collectors.toList());
 		} else {
 			return null;
 		}

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.springframework.util.StringUtils;
@@ -234,7 +233,7 @@ public class CodeGenerator {
 		});
 	}
 
-	public void addMembers(final Stream<ColumnDefinition> columns, final Table table) {
+	public void addMembers(final List<ColumnDefinition> columns, final Table table) {
 		final StringBuffer fields = new StringBuffer();
 		final StringBuffer methods = new StringBuffer();
 
@@ -268,8 +267,11 @@ public class CodeGenerator {
 					}
 				}
 
-				fields.append(NEWLINE).append(INDENT1).append("@Column(name = \"").append(column.getColumnName())
-						.append("\")").append(NEWLINE);
+				if (column.getDataType() != JDBCType.JAVA_OBJECT) {
+					fields.append(NEWLINE).append(INDENT1).append("@Column(name = \"").append(column.getColumnName())
+							.append("\")").append(NEWLINE);
+				}
+
 				fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName).append(";")
 						.append(NEWLINE);
 

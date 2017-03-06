@@ -15,7 +15,7 @@ public class ExternalConfig {
 		private String dockerHost = null;
 		private String dockerBaseImageName = "java:8";
 		private String dockerImageName;
-		
+
 		public String getDockerHost() {
 			return dockerHost;
 		}
@@ -80,9 +80,43 @@ public class ExternalConfig {
 				private String objectType = null;
 				private String objectName = null;
 				private String mappedBy = null;
-				private String columnName = null;
-				private String referencedColumnName = null;
-				
+				private List<Join> joins = null;
+
+				public static class Join {
+					private String columnName = null;
+					private String referencedColumnName = null;
+
+					public String getColumnName() {
+						return columnName;
+					}
+
+					public void setColumnName(final String columnName) {
+						this.columnName = columnName;
+					}
+
+					public String getReferencedColumnName() {
+						return referencedColumnName;
+					}
+
+					public void setReferencedColumnName(final String referencedColumnName) {
+						this.referencedColumnName = referencedColumnName;
+					}
+
+					public String getConfigError(final String relationshipType, final String tableName) {
+						if (StringUtils.isEmpty(columnName)) {
+							return "Column Name is missing in relationship: " + relationshipType + " for table: "
+									+ tableName + " in JPA Config";
+						}
+
+						if (StringUtils.isEmpty(referencedColumnName)) {
+							return "Referenced Column Name is missing in relationship: " + relationshipType
+									+ " for table: " + tableName + " in JPA Config";
+						}
+
+						return null;
+					}
+				}
+
 				public String getRelationshipType() {
 					return relationshipType;
 				}
@@ -131,20 +165,12 @@ public class ExternalConfig {
 					this.mappedBy = mappedBy;
 				}
 
-				public String getColumnName() {
-					return columnName;
+				public List<Join> getJoins() {
+					return joins;
 				}
 
-				public void setColumnName(final String columnName) {
-					this.columnName = columnName;
-				}
-
-				public String getReferencedColumnName() {
-					return referencedColumnName;
-				}
-
-				public void setReferencedColumnName(final String referencedColumnName) {
-					this.referencedColumnName = referencedColumnName;
+				public void setJoins(final List<Join> joins) {
+					this.joins = joins;
 				}
 
 				public String getConfigError(final String tableName) {
@@ -182,21 +208,19 @@ public class ExternalConfig {
 					}
 
 					if ("ManyToOne".equals(relationshipType) || "ManyToMany".equals(relationshipType)) {
-						if (StringUtils.isEmpty(columnName)) {
-							return "Column Name is missing in relationship: " + relationshipType + " for table: "
-									+ tableName + " in JPA Config";
+						if (joins == null) {
+							return "Joins missing in relationship: " + relationshipType + " for table: " + tableName
+									+ " in JPA Config";
 						}
 
-						if (StringUtils.isEmpty(referencedColumnName)) {
-							return "Referenced Column Name is missing in relationship: " + relationshipType
-									+ " for table: " + tableName + " in JPA Config";
-						}
+						return joins.stream().map(join -> join.getConfigError(relationshipType, tableName))
+								.filter(error -> error != null).findFirst().orElse(null);
 					}
 
 					return null;
 				}
 			}
-			
+
 			public String getTableName() {
 				return tableName;
 			}
@@ -266,7 +290,7 @@ public class ExternalConfig {
 				return null;
 			}
 		}
-		
+
 		public List<Table> getTables() {
 			return tables;
 		}
