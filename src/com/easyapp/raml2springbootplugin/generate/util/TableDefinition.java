@@ -1,5 +1,6 @@
 package com.easyapp.raml2springbootplugin.generate.util;
 
+import java.sql.JDBCType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -60,7 +61,10 @@ public class TableDefinition {
 
 	public Stream<ColumnDefinition> getNonKeyColumnStream() {
 		if (columns != null) {
-			return columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder);
+			final ColumnDefinition embeddedIdColumn = new ColumnDefinition("ID", JDBCType.JAVA_OBJECT, 0, false, false);
+			embeddedIdColumn.setPrimaryKeyOrder(1);
+
+			return Stream.concat(columns.stream().filter(column -> !column.isInPrimaryKey()).sorted(byColumnOrder), Stream.of(embeddedIdColumn));
 		} else {
 			return null;
 		}

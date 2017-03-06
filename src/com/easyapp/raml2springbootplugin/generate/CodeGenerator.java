@@ -80,7 +80,7 @@ public class CodeGenerator {
 		}
 	}
 
-	public String getJavaDataType(final JDBCType dataType) {
+	public String getJavaDataType(final JDBCType dataType, final String tableName) {
 		if (dataType == JDBCType.CHAR || dataType == JDBCType.VARCHAR || dataType == JDBCType.NCHAR
 				|| dataType == JDBCType.NVARCHAR || dataType == JDBCType.LONGVARCHAR
 				|| dataType == JDBCType.LONGNVARCHAR || dataType == JDBCType.ROWID || dataType == JDBCType.SQLXML
@@ -110,7 +110,10 @@ public class CodeGenerator {
 			addImport("java.time.OffsetDateTime");
 			return "OffsetDateTime";
 		} else if (dataType == JDBCType.JAVA_OBJECT) {
-			return "Object";
+			final String embeddableClassName = GeneratorUtil.getTitleCase(tableName, "_") + "Id";
+			addImport(basePackageName + ".entity." + embeddableClassName);
+
+			return embeddableClassName;
 		} else {
 			return "String";
 		}
@@ -240,22 +243,28 @@ public class CodeGenerator {
 
 			columns.forEach(column -> {
 				final String memberName = GeneratorUtil.getCamelCase(column.getColumnName(), "_");
-				final String memberType = getJavaDataType(column.getDataType());
+				final String memberType = getJavaDataType(column.getDataType(), table.getTableName());
 				final String memberTitleCase = GeneratorUtil.getTitleCase(column.getColumnName(), "_");
 
 				if (column.isInPrimaryKey()) {
-					fields.append(NEWLINE).append(INDENT1).append("@Id");
-					addImport("javax.persistence.Id");
+					if (column.getDataType() == JDBCType.JAVA_OBJECT) {
+						fields.append(NEWLINE).append(INDENT1).append("@EmbeddedId");
+						addImport("javax.persistence.EmbeddedId");
+					} else {
+						fields.append(NEWLINE).append(INDENT1).append("@Id");
+						addImport("javax.persistence.Id");
 
-					if (table.getSequenceName() != null) {
-						final String sequenceName = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Seq";
-						fields.append(NEWLINE).append(INDENT1).append("@GeneratedValue(generator = \"")
-								.append(sequenceName).append("\")");
-						fields.append(NEWLINE).append(INDENT1).append("@SequenceGenerator(name = \"")
-								.append(sequenceName).append("\", sequenceName = \"").append(table.getSequenceName())
-								.append("\", allocationSize = ").append(table.getSequenceIncrement()).append(")");
-						addImport("javax.persistence.GeneratedValue");
-						addImport("javax.persistence.SequenceGenerator");
+						if (table.getSequenceName() != null) {
+							final String sequenceName = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Seq";
+							fields.append(NEWLINE).append(INDENT1).append("@GeneratedValue(generator = \"")
+									.append(sequenceName).append("\")");
+							fields.append(NEWLINE).append(INDENT1).append("@SequenceGenerator(name = \"")
+									.append(sequenceName).append("\", sequenceName = \"")
+									.append(table.getSequenceName()).append("\", allocationSize = ")
+									.append(table.getSequenceIncrement()).append(")");
+							addImport("javax.persistence.GeneratedValue");
+							addImport("javax.persistence.SequenceGenerator");
+						}
 					}
 				}
 

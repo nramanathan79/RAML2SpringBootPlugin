@@ -47,11 +47,8 @@ public class RAML2SpringBoot {
 		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
 		
 		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
-			GenerateEntities entities = new GenerateEntities(codeGenConfig);
-			entities.create();
-			
-			//GenerateRepositories repositories = new GenerateRepositories(codeGenConfig);
-			//repositories.create();
+			GenerateJPA jpa = new GenerateJPA(codeGenConfig);
+			jpa.create();
 		}
 	}
 }

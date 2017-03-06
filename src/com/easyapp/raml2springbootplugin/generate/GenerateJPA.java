@@ -8,10 +8,10 @@ import com.easyapp.raml2springbootplugin.generate.util.DatabaseUtil;
 import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 import com.easyapp.raml2springbootplugin.generate.util.TableDefinition;
 
-public class GenerateEntities {
+public class GenerateJPA {
 	private final CodeGenConfig codeGenConfig;
 
-	public GenerateEntities(final CodeGenConfig codeGenConfig) {
+	public GenerateJPA(final CodeGenConfig codeGenConfig) {
 		this.codeGenConfig = codeGenConfig;
 	}
 
@@ -40,9 +40,14 @@ public class GenerateEntities {
 			generator.addCodeBlock(block.toString());
 			
 			if (tableDefinition.hasCompositeKey()) {
-				generator.addMembers(tableDefinition.getNonKeyColumnStream(), table);
+				//GenerateEmbeddable embeddable = new GenerateEmbeddable(codeGenConfig);
+				//embeddable.create(tableDefinition.getKeyColumnStream(), table);
+				
+				GenerateEntity entity = new GenerateEntity(codeGenConfig);
+				entity.create(tableDefinition.getNonKeyColumnStream(), table);
 			} else {
-				generator.addMembers(tableDefinition.getColumnStream(), table);
+				GenerateEntity entity = new GenerateEntity(codeGenConfig);
+				entity.create(tableDefinition.getColumnStream(), table);
 			}
 			
 			generator.writeCode();
