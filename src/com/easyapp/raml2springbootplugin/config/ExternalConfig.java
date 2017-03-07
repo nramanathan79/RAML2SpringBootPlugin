@@ -200,6 +200,12 @@ public class ExternalConfig {
 						return "Object Name is missing in relationship for table: " + tableName + " in JPA Config";
 					}
 
+					if (!"OneToOne".equals(relationshipType) && !"OneToMany".equals(relationshipType)
+							&& !"ManyToOne".equals(relationshipType) && !"ManyToMany".equals(relationshipType)) {
+						return "Relationship Type must be one of [OneToOne, OneToMany, ManyToOne, ManyToMany] for table: "
+								+ tableName + " in JPA Config";
+					}
+
 					if ("OneToOne".equals(relationshipType) || "OneToMany".equals(relationshipType)) {
 						if (StringUtils.isEmpty(mappedBy)) {
 							return "Mapped By is missing in relationship: " + relationshipType + " for table: "
