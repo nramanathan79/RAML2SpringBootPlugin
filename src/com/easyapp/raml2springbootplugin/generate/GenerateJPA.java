@@ -128,7 +128,7 @@ public class GenerateJPA {
 				null, codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("org.springframework.stereotype.Repository");
 		generator.addImport("org.springframework.data.jpa.repository.JpaRepository");
-		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-jpa", null);
+		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-data-jpa", null);
 
 		if (entityKeyClassName.endsWith("Date") || entityKeyClassName.endsWith("Time")) {
 			generator.addImport("java.time." + entityKeyClassName);
