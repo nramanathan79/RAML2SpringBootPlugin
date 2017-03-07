@@ -1,0 +1,19 @@
+import java.sql.Time;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
+
+@Converter(autoApply = true)
+public class OffsetTimeAttributeConverter implements AttributeConverter<OffsetTime, Time> {
+	@Override
+	public Time convertToDatabaseColumn(final OffsetTime offsetTime) {
+		return (offsetTime == null ? null : Time.valueOf(offsetTime.toLocalTime()));
+	}
+
+	@Override
+	public OffsetTime convertToEntityAttribute(final Time sqlTime) {
+		return (sqlTime == null ? null : OffsetTime.of(sqlTime.toLocalTime(), ZoneOffset.ofHours(0)));
+	}
+}

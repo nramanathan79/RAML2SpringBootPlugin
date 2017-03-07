@@ -32,8 +32,10 @@ public class CodeGenerator {
 	public static final String DEFAULT_TRANSPORT_PACKAGE = "transport";
 	public static final String ERROR_TRANSPORT_PACKAGE = "error";
 
+	private final String sourceDirectory;
 	private final String basePackageName;
 	private final String packageName;
+	private final boolean overwriteFile;
 	private final Path codeFilePath;
 	private final Map<String, Set<String>> imports = new HashMap<>();
 	private final StringBuffer codeBlock = new StringBuffer();
@@ -79,51 +81,29 @@ public class CodeGenerator {
 		}
 	}
 
-	public String getJavaDataType(final JDBCType dataType, final String tableName) {
-		if (dataType == JDBCType.CHAR || dataType == JDBCType.VARCHAR || dataType == JDBCType.NCHAR
-				|| dataType == JDBCType.NVARCHAR || dataType == JDBCType.LONGVARCHAR
-				|| dataType == JDBCType.LONGNVARCHAR || dataType == JDBCType.ROWID || dataType == JDBCType.SQLXML
-				|| dataType == JDBCType.STRUCT) {
-			return "String";
-		} else if (dataType == JDBCType.BIGINT || dataType == JDBCType.INTEGER || dataType == JDBCType.SMALLINT
-				|| dataType == JDBCType.TINYINT) {
-			return "Long";
-		} else if (dataType == JDBCType.DECIMAL || dataType == JDBCType.DOUBLE || dataType == JDBCType.FLOAT
-				|| dataType == JDBCType.NUMERIC || dataType == JDBCType.REAL) {
-			return "Double";
-		} else if (dataType == JDBCType.BOOLEAN || dataType == JDBCType.BIT) {
-			return "Boolean";
-		} else if (dataType == JDBCType.DATE) {
-			addImport("java.time.LocalDate");
-			return "LocalDate";
-		} else if (dataType == JDBCType.TIME) {
-			addImport("java.time.LocalTime");
-			return "LocalTime";
-		} else if (dataType == JDBCType.TIME_WITH_TIMEZONE) {
-			addImport("java.time.OffsetTime");
-			return "OffsetTime";
-		} else if (dataType == JDBCType.TIMESTAMP) {
-			addImport("java.time.LocalDateTime");
-			return "LocalDateTime";
-		} else if (dataType == JDBCType.TIMESTAMP_WITH_TIMEZONE) {
-			addImport("java.time.OffsetDateTime");
-			return "OffsetDateTime";
-		} else if (dataType == JDBCType.JAVA_OBJECT) {
-			final String embeddableClassName = GeneratorUtil.getTitleCase(tableName, "_") + "Id";
-			addImport(basePackageName + ".entity." + embeddableClassName);
+	public String getJavaDataType(final JDBCType dataType, final String tableName) throws Exception {
+		String javaDataType = GeneratorUtil.getJavaDataType(dataType);
 
-			return embeddableClassName;
-		} else {
-			return "String";
+		if (javaDataType.endsWith("Date") || javaDataType.endsWith("Time")) {
+			addImport("java.time." + javaDataType);
+			GeneratorUtil.createAttributeConverter(sourceDirectory, basePackageName + ".repository", javaDataType,
+					overwriteFile);
+		} else if (javaDataType.equals("Unknown") && dataType == JDBCType.JAVA_OBJECT) {
+			javaDataType = GeneratorUtil.getTitleCase(tableName, "_") + "Id";
+			addImport(basePackageName + ".entity." + javaDataType);
 		}
+
+		return javaDataType;
 	}
 
 	public CodeGenerator(final String sourceDirectory, final String basePackageName, final String packageNameSuffix,
 			final List<String> classAnnotations, final boolean isInterface, final String className,
 			final String extendsFrom, final List<String> implementsList, final boolean overwriteFile) {
+		this.sourceDirectory = sourceDirectory;
 		this.basePackageName = basePackageName;
 		this.packageName = StringUtils.isEmpty(packageNameSuffix) ? basePackageName
 				: basePackageName + "." + packageNameSuffix;
+		this.overwriteFile = overwriteFile;
 
 		final File directory = new File(sourceDirectory + File.separator + packageName.replace(".", File.separator));
 
@@ -233,14 +213,14 @@ public class CodeGenerator {
 		});
 	}
 
-	public void addMembers(final List<ColumnDefinition> columns, final Table table) {
+	public void addMembers(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final StringBuffer fields = new StringBuffer();
 		final StringBuffer methods = new StringBuffer();
 
 		if (columns != null) {
 			addImport("javax.persistence.Column");
 
-			columns.forEach(column -> {
+			for (final ColumnDefinition column : columns) {
 				final String memberName = GeneratorUtil.getCamelCase(column.getColumnName(), "_");
 				final String memberType = getJavaDataType(column.getDataType(), table.getTableName());
 				final String memberTitleCase = GeneratorUtil.getTitleCase(column.getColumnName(), "_");
@@ -285,7 +265,7 @@ public class CodeGenerator {
 				methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
 						.append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE);
-			});
+			}
 		}
 
 		if (table.getRelationships() != null) {

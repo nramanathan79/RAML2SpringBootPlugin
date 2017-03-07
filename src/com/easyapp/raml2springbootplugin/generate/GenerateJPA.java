@@ -46,9 +46,8 @@ public class GenerateJPA {
 		columns.forEach(column -> {
 			constructors.append(CodeGenerator.INDENT3).append("this.")
 					.append(GeneratorUtil.getCamelCase(column.getColumnName(), "_")).append(" = new ")
-					.append(generator.getJavaDataType(column.getDataType(), table.getTableName()))
-					.append("(URLDecoder.decode(tokens[").append(index.getAndAdd(1)).append("], \"UTF-8\"));")
-					.append(CodeGenerator.NEWLINE);
+					.append(GeneratorUtil.getJavaDataType(column.getDataType())).append("(URLDecoder.decode(tokens[")
+					.append(index.getAndAdd(1)).append("], \"UTF-8\"));").append(CodeGenerator.NEWLINE);
 		});
 
 		constructors.append(CodeGenerator.INDENT2).append("} catch (Exception e) {").append(CodeGenerator.NEWLINE);
@@ -59,8 +58,8 @@ public class GenerateJPA {
 
 		constructors.append(CodeGenerator.INDENT1).append("public ").append(className).append("(")
 				.append(columns.stream()
-						.map(column -> "final " + generator.getJavaDataType(column.getDataType(), table.getTableName())
-								+ " " + GeneratorUtil.getCamelCase(column.getColumnName(), "_"))
+						.map(column -> "final " + GeneratorUtil.getJavaDataType(column.getDataType()) + " "
+								+ GeneratorUtil.getCamelCase(column.getColumnName(), "_"))
 						.collect(Collectors.joining(", ")))
 				.append(") {").append(CodeGenerator.NEWLINE);
 
@@ -96,7 +95,7 @@ public class GenerateJPA {
 								+ ".toString(), \"UTF-8\")")
 						.collect(Collectors.joining(" + \"~\" + ")))
 				.append(";").append(CodeGenerator.NEWLINE);
-		overrides.append(CodeGenerator.INDENT2).append("} catch(Exception e) {").append(CodeGenerator.NEWLINE);
+		overrides.append(CodeGenerator.INDENT2).append("} catch (Exception e) {").append(CodeGenerator.NEWLINE);
 		overrides.append(CodeGenerator.INDENT3).append("return \"\";").append(CodeGenerator.NEWLINE);
 		overrides.append(CodeGenerator.INDENT2).append("}").append(CodeGenerator.NEWLINE);
 		overrides.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
@@ -122,6 +121,28 @@ public class GenerateJPA {
 		generator.writeCode();
 	}
 
+	private void generateRepository(final String entityClassName, final String entityKeyClassName) throws Exception {
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
+				codeGenConfig.getBasePackage(), "repository", Arrays.asList("@Repository"), true,
+				entityClassName + "Repository", "JpaRepository<" + entityClassName + ", " + entityKeyClassName + ">",
+				null, codeGenConfig.getExternalConfig().overwriteFiles());
+		generator.addImport("org.springframework.stereotype.Repository");
+		generator.addImport("org.springframework.data.jpa.repository.JpaRepository");
+		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-jpa", null);
+
+		if (entityKeyClassName.endsWith("Date") || entityKeyClassName.endsWith("Time")) {
+			generator.addImport("java.time." + entityKeyClassName);
+		}
+
+		generator.addImport(codeGenConfig.getBasePackage() + ".entity." + entityClassName);
+
+		if (entityKeyClassName.startsWith(entityClassName)) {
+			generator.addImport(codeGenConfig.getBasePackage() + ".entity." + entityKeyClassName);
+		}
+
+		generator.writeCode();
+	}
+
 	public GenerateJPA(final CodeGenConfig codeGenConfig) {
 		this.codeGenConfig = codeGenConfig;
 	}
@@ -136,12 +157,17 @@ public class GenerateJPA {
 
 		for (final Table table : codeGenConfig.getExternalConfig().getJpaConfig().getTables()) {
 			final TableDefinition tableDefinition = databaseUtil.getTableDefinition(table.getTableName());
+			final String entityClassName = GeneratorUtil.getTitleCase(table.getTableName(), "_");
+			String entityKeyClassName = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Id";
 
 			if (tableDefinition.hasCompositeKey()) {
 				generateEmbeddable(tableDefinition.getKeyColumns(), table);
 				generateEntity(tableDefinition.getNonKeyColumns(), table);
+				generateRepository(entityClassName, entityKeyClassName);
 			} else {
 				generateEntity(tableDefinition.getColumns(), table);
+				entityKeyClassName = GeneratorUtil
+						.getJavaDataType(tableDefinition.getKeyColumns().get(0).getDataType());
 			}
 		}
 	}
