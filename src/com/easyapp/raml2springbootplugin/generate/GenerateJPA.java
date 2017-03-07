@@ -26,7 +26,7 @@ public class GenerateJPA {
 		generator.addImport("java.io.Serializable");
 
 		generator.addCodeBlock(CodeGenerator.INDENT1 + "private static final long serialVersionUID = 1L;");
-		generator.addMembers(columns, table);
+		generator.addMembers(columns, new Table(table.getTableName()));
 
 		final StringBuffer constructors = new StringBuffer();
 		constructors.append(CodeGenerator.INDENT1).append("public ").append(className).append("() {")

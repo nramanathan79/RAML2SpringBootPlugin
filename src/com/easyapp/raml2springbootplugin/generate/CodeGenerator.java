@@ -297,12 +297,11 @@ public class CodeGenerator {
 					objectType = "List<" + objectType + ">";
 
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
-							.append("(mappedBy = ").append(relationship.getMappedBy()).append(", fetch = ")
+							.append("(mappedBy = \"").append(relationship.getMappedBy()).append("\", fetch = ")
 							.append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
 					fields.append(INDENT1).append("private ").append(objectType).append(" ")
 							.append(relationship.getObjectName()).append(";").append(NEWLINE);
-					addImport("javax.persistence." + relationship.getRelationshipType());
 					addImport("java.util.List");
 				} else {
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
@@ -328,9 +327,12 @@ public class CodeGenerator {
 
 					fields.append(INDENT1).append("private ").append(objectType).append(" ")
 							.append(relationship.getObjectName()).append(";").append(NEWLINE);
-					addImport("javax.persistence." + relationship.getRelationshipType());
 					addImport("javax.persistence.JoinColumn");
 				}
+
+				addImport("javax.persistence." + relationship.getRelationshipType());
+				addImport("javax.persistence.FetchType");
+				addImport("javax.persistence.CascadeType");
 
 				final String memberName = relationship.getObjectName();
 				final String memberTitleCase = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);

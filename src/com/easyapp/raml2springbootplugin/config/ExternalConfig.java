@@ -227,6 +227,14 @@ public class ExternalConfig {
 				}
 			}
 
+			public Table() {
+
+			}
+
+			public Table(final String tableName) {
+				this.tableName = tableName;
+			}
+
 			public String getTableName() {
 				return tableName;
 			}
