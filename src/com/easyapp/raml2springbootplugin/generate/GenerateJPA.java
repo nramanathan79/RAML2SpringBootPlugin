@@ -163,12 +163,13 @@ public class GenerateJPA {
 			if (tableDefinition.hasCompositeKey()) {
 				generateEmbeddable(tableDefinition.getKeyColumns(), table);
 				generateEntity(tableDefinition.getNonKeyColumns(), table);
-				generateRepository(entityClassName, entityKeyClassName);
 			} else {
 				generateEntity(tableDefinition.getColumns(), table);
 				entityKeyClassName = GeneratorUtil
 						.getJavaDataType(tableDefinition.getKeyColumns().get(0).getDataType());
 			}
+
+			generateRepository(entityClassName, entityKeyClassName);
 		}
 	}
 }
