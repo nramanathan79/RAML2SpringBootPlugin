@@ -63,6 +63,8 @@ public class CodeGenConfig {
 		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
 			final ObjectMapper mapper = new ObjectMapper();
 			externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
+		} else {
+			externalConfig = new ExternalConfig();
 		}
 	}
 
@@ -152,7 +154,7 @@ public class CodeGenConfig {
 			return "config.json file is invalid";
 		}
 
-		if (externalConfig != null && externalConfig.hasJpaConfig()) {
+		if (externalConfig.hasJpaConfig()) {
 			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.driver-class-name"))) {
 				return "Datasource property spring.datasource.driver-class-name is missing in application.properties";
 			}
@@ -170,7 +172,7 @@ public class CodeGenConfig {
 			}
 		}
 
-		return externalConfig != null ? externalConfig.getConfigError() : null;
+		return externalConfig.getConfigError();
 	}
 
 	public String getRamlFilePath() {
