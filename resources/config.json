@@ -1,0 +1,44 @@
+{
+	"generateTests": true,
+	"overwriteFiles": true,
+	"generateHealthCheck": true,
+	"dockerConfig": {
+	    "dockerHost": "http://localhost:2375",
+	    "dockerBaseImageName": "java:8",
+	    "dockerImageName": "accounts:v1"
+	},
+	"jpaConfig": {
+		"tables": [
+			{
+			    "tableName": "country",
+			    "collectionResource": "countries",
+			    "uriPath": "countries",
+			    "sequenceName": "countryIdSequence",
+			    "relationships": [
+			        {
+			            "relationshipType": "OneToMany",
+				        "objectType": "City",
+				        "objectName": "cities",
+				        "mappedBy": "country"
+			        }
+			    ]
+			},
+			{
+			    "tableName": "city",
+			    "collectionResource": "cities",
+			    "uriPath": "cities",
+			    "relationships": [
+			        {
+			            "relationshipType": "ManyToOne",
+				        "objectType": "Country",
+				        "objectName": "country",
+				        "joins": [
+				            {"columnName": "continent", "referencedColumnName": "continent"},
+				            {"columnName": "country_name", "referencedColumnName": "countryname"}
+				        ]
+			        }
+			    ]
+			}
+		]
+	}
+}
