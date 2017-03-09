@@ -152,7 +152,7 @@ public class CodeGenConfig {
 			return "config.json file is invalid";
 		}
 
-		if (externalConfig.hasJpaConfig()) {
+		if (externalConfig != null && externalConfig.hasJpaConfig()) {
 			if (StringUtils.isEmpty(getApplicationProperty("spring.datasource.driver-class-name"))) {
 				return "Datasource property spring.datasource.driver-class-name is missing in application.properties";
 			}
@@ -170,7 +170,7 @@ public class CodeGenConfig {
 			}
 		}
 
-		return externalConfig.getConfigError();
+		return externalConfig != null ? externalConfig.getConfigError() : null;
 	}
 
 	public String getRamlFilePath() {
