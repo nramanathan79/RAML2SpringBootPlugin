@@ -42,7 +42,7 @@ public class GenerateJPA {
 				.append(CodeGenerator.NEWLINE);
 		generator.addImport("java.net.URLDecoder");
 
-		final AtomicInteger index = new AtomicInteger(1);
+		final AtomicInteger index = new AtomicInteger(0);
 		columns.forEach(column -> {
 			constructors.append(CodeGenerator.INDENT3).append("this.")
 					.append(GeneratorUtil.getCamelCase(column.getColumnName(), "_")).append(" = new ")
