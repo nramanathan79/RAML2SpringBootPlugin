@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/postgresql-9.4.1212.jre7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/classworlds-1.1-alpha-2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/junit-3.8.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-manager-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-model-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-plugin-registry-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-profile-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-project-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-repository-metadata-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/maven-settings-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/plexus-container-default-1.0-alpha-9-stable-1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/plexus-interpolation-1.11.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/plexus-utils-1.5.15.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/wagon-provider-api-1.0-beta-6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/activation-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/annotations-3.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/btf-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/classworlds-1.1-alpha-2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.2.jar"/>
@@ -33,23 +19,37 @@
 	<classpathentry exported="true" kind="lib" path="lib/json-schema-core-1.2.5.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-schema-validator-2.2.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jsr305-3.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-3.8.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/juniversalchardet-1.0.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/libphonenumber-6.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/mailapi-1.4.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-artifact-manager-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-model-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-plugin-registry-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-profile-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-project-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-repository-metadata-2.2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/maven-settings-2.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/msg-simple-1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/raml-parser-2-1.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-container-default-1.0-alpha-9-stable-1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-interpolation-1.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/plexus-utils-1.5.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/postgresql-9.4.1212.jre7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/raml-parser-2-1.0.7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7R4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.7.14.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/snakeyaml-1.15.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-aop-4.3.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-beans-4.3.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-context-4.3.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-core-4.3.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-expression-4.3.6.RELEASE.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/spring-web-4.3.6.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-aop-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-beans-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-context-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-core-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-expression-4.3.7.RELEASE.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/spring-web-4.3.7.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/uri-template-0.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wagon-provider-api-1.0-beta-6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xmlschema-core-2.2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/yagi-1.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/yagi-1.0.7.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
