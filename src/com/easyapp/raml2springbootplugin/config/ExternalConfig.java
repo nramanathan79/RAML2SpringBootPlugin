@@ -158,11 +158,11 @@ public class ExternalConfig {
 					}
 
 					if (joins.size() > 1) {
-						return "@JoinColumns({" + joins.stream()
+						return "{" + joins.stream()
 								.map(join -> "@JoinColumn(name = \"" + join.getColumnName()
 										+ "\", referencedColumnName = \"" + join.getReferencedColumnName()
 										+ "\", nullable = true, updatable = false, insertable = false)")
-								.collect(Collectors.joining(", ")) + "})";
+								.collect(Collectors.joining(", ")) + "}";
 					} else {
 						return "@JoinColumn(name = \"" + joins.get(0).getColumnName() + "\", referencedColumnName = \""
 								+ joins.get(0).getReferencedColumnName()
@@ -176,11 +176,11 @@ public class ExternalConfig {
 					}
 
 					if (joins.size() > 1) {
-						return "@JoinColumns({" + joins.stream()
+						return "{" + joins.stream()
 								.map(join -> "@JoinColumn(name = \"" + join.getReferencedColumnName()
 										+ "\", referencedColumnName = \"" + join.getColumnName()
 										+ "\", nullable = true, updatable = false, insertable = false)")
-								.collect(Collectors.joining(", ")) + "})";
+								.collect(Collectors.joining(", ")) + "}";
 					} else {
 						return "@JoinColumn(name = \"" + joins.get(0).getReferencedColumnName()
 								+ "\", referencedColumnName = \"" + joins.get(0).getColumnName()

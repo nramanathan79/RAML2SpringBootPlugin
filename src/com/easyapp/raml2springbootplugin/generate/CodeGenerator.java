@@ -296,9 +296,7 @@ public class CodeGenerator {
 					String joinColumns = relationship.getJoinColumns();
 					String inverseJoinColumns = relationship.getInverseJoinColumns();
 
-					if (joinColumns.startsWith("@JoinColumns(")) {
-						addImport("javax.persistence.JoinColumns");
-					} else {
+					if (!joinColumns.startsWith("{")) {
 						joinColumns = "{" + joinColumns + "}";
 						inverseJoinColumns = "{" + inverseJoinColumns + "}";
 					}
@@ -317,17 +315,20 @@ public class CodeGenerator {
 							.append("(fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
 
-					final String joinColumns = relationship.getJoinColumns();
+					if (relationship.getJoins() != null) {
+						String joinColumns = relationship.getJoinColumns();
 
-					if (joinColumns.startsWith("@JoinColumns(")) {
-						addImport("javax.persistence.JoinColumns");
+						if (joinColumns.startsWith("{")) {
+							joinColumns = "@JoinColumns{" + joinColumns + "}";
+							addImport("javax.persistence.JoinColumns");
+						}
+
+						fields.append(INDENT1).append(joinColumns).append(NEWLINE);
+						addImport("javax.persistence.JoinColumn");
 					}
 
-					fields.append(INDENT1).append(joinColumns).append(NEWLINE);
 					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
 							.append(";").append(NEWLINE);
-
-					addImport("javax.persistence.JoinColumn");
 				}
 
 				addImport("javax.persistence." + relationship.getRelationshipType());
