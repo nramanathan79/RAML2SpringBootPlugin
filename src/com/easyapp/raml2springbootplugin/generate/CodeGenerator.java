@@ -319,7 +319,7 @@ public class CodeGenerator {
 						String joinColumns = relationship.getJoinColumns();
 
 						if (joinColumns.startsWith("{")) {
-							joinColumns = "@JoinColumns{" + joinColumns + "}";
+							joinColumns = "@JoinColumns(" + joinColumns + ")";
 							addImport("javax.persistence.JoinColumns");
 						}
 
