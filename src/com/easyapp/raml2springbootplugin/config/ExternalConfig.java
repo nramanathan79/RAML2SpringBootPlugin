@@ -13,7 +13,7 @@ public class ExternalConfig {
 
 	public static class DockerConfig {
 		private String dockerHost = null;
-		private String dockerBaseImageName = "java:8";
+		private String dockerBaseImageName = "openjdk:8-alpine";
 		private String dockerImageName;
 
 		public String getDockerHost() {
@@ -75,11 +75,9 @@ public class ExternalConfig {
 
 			public static class Relationship {
 				private String relationshipType = null;
+				private String referencedTableName = null;
 				private String fetchType = "FetchType.LAZY";
 				private String cascadeType = "CascadeType.DETACH";
-				private String objectType = null;
-				private String objectName = null;
-				private String mappedBy = null;
 				private List<Join> joins = null;
 
 				public static class Join {
@@ -125,6 +123,14 @@ public class ExternalConfig {
 					this.relationshipType = relationshipType;
 				}
 
+				public String getReferencedTableName() {
+					return referencedTableName;
+				}
+
+				public void setReferencedTableName(final String referencedTableName) {
+					this.referencedTableName = referencedTableName;
+				}
+
 				public String getFetchType() {
 					return fetchType;
 				}
@@ -139,30 +145,6 @@ public class ExternalConfig {
 
 				public void setCascadeType(final String cascadeType) {
 					this.cascadeType = cascadeType;
-				}
-
-				public String getObjectType() {
-					return objectType;
-				}
-
-				public void setObjectType(final String objectType) {
-					this.objectType = objectType;
-				}
-
-				public String getObjectName() {
-					return objectName;
-				}
-
-				public void setObjectName(final String objectName) {
-					this.objectName = objectName;
-				}
-
-				public String getMappedBy() {
-					return mappedBy;
-				}
-
-				public void setMappedBy(final String mappedBy) {
-					this.mappedBy = mappedBy;
 				}
 
 				public List<Join> getJoins() {
@@ -183,6 +165,10 @@ public class ExternalConfig {
 						return "Relationship Type should be one of [OneToOne, OneToMany, ManyToOne, ManyToMany] and is incorrect for table: "
 								+ tableName + " in JPA Config";
 					}
+					
+					if (StringUtils.isEmpty(referencedTableName)) {
+						return "Referenced Table Name is missing in relationship for table: " + tableName + " in JPA Config";
+					}
 
 					if (StringUtils.isEmpty(fetchType)) {
 						return "Fetch Type is missing in relationship for table: " + tableName + " in JPA Config";
@@ -192,25 +178,10 @@ public class ExternalConfig {
 						return "Cascade Type is missing in relationship for table: " + tableName + " in JPA Config";
 					}
 
-					if (StringUtils.isEmpty(objectType)) {
-						return "Object Type is missing in relationship for table: " + tableName + " in JPA Config";
-					}
-
-					if (StringUtils.isEmpty(objectName)) {
-						return "Object Name is missing in relationship for table: " + tableName + " in JPA Config";
-					}
-
 					if (!"OneToOne".equals(relationshipType) && !"OneToMany".equals(relationshipType)
 							&& !"ManyToOne".equals(relationshipType) && !"ManyToMany".equals(relationshipType)) {
 						return "Relationship Type must be one of [OneToOne, OneToMany, ManyToOne, ManyToMany] for table: "
 								+ tableName + " in JPA Config";
-					}
-
-					if ("OneToOne".equals(relationshipType) || "OneToMany".equals(relationshipType)) {
-						if (StringUtils.isEmpty(mappedBy)) {
-							return "Mapped By is missing in relationship: " + relationshipType + " for table: "
-									+ tableName + " in JPA Config";
-						}
 					}
 
 					if ("ManyToOne".equals(relationshipType) || "ManyToMany".equals(relationshipType)) {

@@ -17,9 +17,7 @@
 			    "relationships": [
 			        {
 			            "relationshipType": "OneToMany",
-				        "objectType": "City",
-				        "objectName": "cities",
-				        "mappedBy": "country"
+			            "referencedTableName": "city"
 			        }
 			    ]
 			},
@@ -30,8 +28,7 @@
 			    "relationships": [
 			        {
 			            "relationshipType": "ManyToOne",
-				        "objectType": "Country",
-				        "objectName": "country",
+			            "referencedTableName": "country",
 				        "joins": [
 				            {"columnName": "continent", "referencedColumnName": "continent"},
 				            {"columnName": "country_name", "referencedColumnName": "countryname"}

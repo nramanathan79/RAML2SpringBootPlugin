@@ -270,18 +270,18 @@ public class CodeGenerator {
 
 		if (table.getRelationships() != null) {
 			table.getRelationships().stream().forEach(relationship -> {
-				String objectType = relationship.getObjectType();
+				String memberType = GeneratorUtil.getTitleCase(relationship.getReferencedTableName(), "_");
+				final String memberName = GeneratorUtil.getCamelCase(relationship.getReferencedTableName(), "_");
 
-				if ("OneToOne".equals(relationship.getRelationshipType())
-						|| "OneToMany".equals(relationship.getRelationshipType())) {
-					objectType = "List<" + objectType + ">";
+				if ("OneToMany".equals(relationship.getRelationshipType())) {
+					memberType = "List<" + memberType + ">";
 
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
-							.append("(mappedBy = \"").append(relationship.getMappedBy()).append("\", fetch = ")
-							.append(relationship.getFetchType()).append(", cascade = ")
+							.append("(mappedBy = \"").append(GeneratorUtil.getCamelCase(table.getTableName(), "_"))
+							.append("\", fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
-					fields.append(INDENT1).append("private ").append(objectType).append(" ")
-							.append(relationship.getObjectName()).append(";").append(NEWLINE);
+					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
+							.append(";").append(NEWLINE);
 					addImport("java.util.List");
 				} else {
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
@@ -305,8 +305,8 @@ public class CodeGenerator {
 								.append("\", nullable = true, updatable = false, insertable = false)").append(NEWLINE);
 					}
 
-					fields.append(INDENT1).append("private ").append(objectType).append(" ")
-							.append(relationship.getObjectName()).append(";").append(NEWLINE);
+					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
+							.append(";").append(NEWLINE);
 					addImport("javax.persistence.JoinColumn");
 				}
 
@@ -314,16 +314,15 @@ public class CodeGenerator {
 				addImport("javax.persistence.FetchType");
 				addImport("javax.persistence.CascadeType");
 
-				final String memberName = relationship.getObjectName();
 				final String memberTitleCase = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
-				methods.append(NEWLINE).append(INDENT1).append("public ").append(objectType).append(" get")
+				methods.append(NEWLINE).append(INDENT1).append("public ").append(memberType).append(" get")
 						.append(memberTitleCase).append("() {").append(NEWLINE);
 				methods.append(INDENT2).append("return ").append(memberName).append(";").append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
 
 				methods.append(INDENT1).append("public void set").append(memberTitleCase).append("(final ")
-						.append(objectType).append(" ").append(memberName).append(") {").append(NEWLINE);
+						.append(memberType).append(" ").append(memberName).append(") {").append(NEWLINE);
 				methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
 						.append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE);
