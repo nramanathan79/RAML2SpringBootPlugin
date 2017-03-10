@@ -4,7 +4,6 @@
 	"generateHealthCheck": true,
 	"dockerConfig": {
 	    "dockerHost": "http://localhost:2375",
-	    "dockerBaseImageName": "java:8",
 	    "dockerImageName": "accounts:v1"
 	},
 	"jpaConfig": {
