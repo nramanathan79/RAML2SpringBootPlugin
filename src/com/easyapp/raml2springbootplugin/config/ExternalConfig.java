@@ -1,6 +1,7 @@
 package com.easyapp.raml2springbootplugin.config;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
 
@@ -151,6 +152,42 @@ public class ExternalConfig {
 					return joins;
 				}
 
+				public String getJoinColumns() {
+					if (joins == null) {
+						return null;
+					}
+
+					if (joins.size() > 1) {
+						return "@JoinColumns({" + joins.stream()
+								.map(join -> "@JoinColumn(name = \"" + join.getColumnName()
+										+ "\", referencedColumnName = \"" + join.getReferencedColumnName()
+										+ "\", nullable = true, updatable = false, insertable = false)")
+								.collect(Collectors.joining(", ")) + "})";
+					} else {
+						return "@JoinColumn(name = \"" + joins.get(0).getColumnName() + "\", referencedColumnName = \""
+								+ joins.get(0).getReferencedColumnName()
+								+ "\", nullable = true, updatable = false, insertable = false)";
+					}
+				}
+
+				public String getInverseJoinColumns() {
+					if (joins == null) {
+						return null;
+					}
+
+					if (joins.size() > 1) {
+						return "@JoinColumns({" + joins.stream()
+								.map(join -> "@JoinColumn(name = \"" + join.getReferencedColumnName()
+										+ "\", referencedColumnName = \"" + join.getColumnName()
+										+ "\", nullable = true, updatable = false, insertable = false)")
+								.collect(Collectors.joining(", ")) + "})";
+					} else {
+						return "@JoinColumn(name = \"" + joins.get(0).getReferencedColumnName()
+								+ "\", referencedColumnName = \"" + joins.get(0).getColumnName()
+								+ "\", nullable = true, updatable = false, insertable = false)";
+					}
+				}
+
 				public void setJoins(final List<Join> joins) {
 					this.joins = joins;
 				}
@@ -165,9 +202,10 @@ public class ExternalConfig {
 						return "Relationship Type should be one of [OneToOne, OneToMany, ManyToOne, ManyToMany] and is incorrect for table: "
 								+ tableName + " in JPA Config";
 					}
-					
+
 					if (StringUtils.isEmpty(referencedTableName)) {
-						return "Referenced Table Name is missing in relationship for table: " + tableName + " in JPA Config";
+						return "Referenced Table Name is missing in relationship for table: " + tableName
+								+ " in JPA Config";
 					}
 
 					if (StringUtils.isEmpty(fetchType)) {
@@ -178,20 +216,14 @@ public class ExternalConfig {
 						return "Cascade Type is missing in relationship for table: " + tableName + " in JPA Config";
 					}
 
-					if (!"OneToOne".equals(relationshipType) && !"OneToMany".equals(relationshipType)
-							&& !"ManyToOne".equals(relationshipType) && !"ManyToMany".equals(relationshipType)) {
-						return "Relationship Type must be one of [OneToOne, OneToMany, ManyToOne, ManyToMany] for table: "
-								+ tableName + " in JPA Config";
-					}
-
-					if ("ManyToOne".equals(relationshipType) || "ManyToMany".equals(relationshipType)) {
-						if (joins == null) {
+					if (joins == null) {
+						if ("ManyToOne".equals(relationshipType)) {
 							return "Joins missing in relationship: " + relationshipType + " for table: " + tableName
 									+ " in JPA Config";
 						}
-
+					} else {
 						return joins.stream().map(join -> join.getConfigError(relationshipType, tableName))
-								.filter(error -> error != null).findFirst().orElse(null);
+								.filter(error -> error != null).findAny().orElse(null);
 					}
 
 					return null;
@@ -269,7 +301,7 @@ public class ExternalConfig {
 
 				if (relationships != null && !relationships.isEmpty()) {
 					relationships.stream().map(relationship -> relationship.getConfigError(tableName))
-							.filter(configError -> configError != null).findFirst().orElse(null);
+							.filter(configError -> configError != null).findAny().orElse(null);
 				}
 
 				return null;
@@ -289,7 +321,7 @@ public class ExternalConfig {
 				return "Missing tables in JPA Config";
 			} else {
 				return tables.stream().map(table -> table.getConfigError()).filter(configError -> configError != null)
-						.findFirst().orElse(null);
+						.findAny().orElse(null);
 			}
 		}
 	}

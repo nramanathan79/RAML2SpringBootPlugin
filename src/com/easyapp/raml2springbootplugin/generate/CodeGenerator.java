@@ -273,8 +273,10 @@ public class CodeGenerator {
 				String memberType = GeneratorUtil.getTitleCase(relationship.getReferencedTableName(), "_");
 				final String memberName = GeneratorUtil.getCamelCase(relationship.getReferencedTableName(), "_");
 
-				if ("OneToMany".equals(relationship.getRelationshipType())) {
-					memberType = "List<" + memberType + ">";
+				if ("OneToMany".equals(relationship.getRelationshipType())
+						|| ("ManyToMany".equals(relationship.getRelationshipType())
+								&& relationship.getJoins() == null)) {
+					memberType = "Collection<" + memberType + ">";
 
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
 							.append("(mappedBy = \"").append(GeneratorUtil.getCamelCase(table.getTableName(), "_"))
@@ -282,31 +284,49 @@ public class CodeGenerator {
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
 					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
 							.append(";").append(NEWLINE);
-					addImport("java.util.List");
+
+					addImport("java.util.Collection");
+				} else if ("ManyToMany".equals(relationship.getRelationshipType())) {
+					memberType = "Collection<" + memberType + ">";
+
+					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
+							.append("(fetch = ").append(relationship.getFetchType()).append(", cascade = ")
+							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
+
+					String joinColumns = relationship.getJoinColumns();
+					String inverseJoinColumns = relationship.getInverseJoinColumns();
+
+					if (joinColumns.startsWith("@JoinColumns(")) {
+						addImport("javax.persistence.JoinColumns");
+					} else {
+						joinColumns = "{" + joinColumns + "}";
+						inverseJoinColumns = "{" + inverseJoinColumns + "}";
+					}
+
+					fields.append(INDENT1).append("@JoinTable(name = \"").append(relationship.getReferencedTableName())
+							.append("\", joinColumns = ").append(joinColumns).append(", inverseJoinColumns = ")
+							.append(inverseJoinColumns).append(")").append(NEWLINE);
+					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
+							.append(";").append(NEWLINE);
+
+					addImport("javax.persistence.JoinTable");
+					addImport("javax.persistence.JoinColumn");
+					addImport("java.util.Collection");
 				} else {
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
 							.append("(fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
 
-					if (relationship.getJoins().size() > 1) {
-						fields.append(INDENT1).append("@JoinColumns({")
-								.append(relationship.getJoins().stream()
-										.map(join -> "@JoinColumn(name = \"" + join.getColumnName()
-												+ "\", referencedColumnName = \"" + join.getReferencedColumnName()
-												+ "\", nullable = true, updatable = false, insertable = false)")
-										.collect(Collectors.joining(", ")))
-								.append("})").append(NEWLINE);
+					final String joinColumns = relationship.getJoinColumns();
+
+					if (joinColumns.startsWith("@JoinColumns(")) {
 						addImport("javax.persistence.JoinColumns");
-					} else {
-						fields.append(INDENT1).append("@JoinColumn(name = \"")
-								.append(relationship.getJoins().get(0).getColumnName())
-								.append("\", referencedColumnName = \"")
-								.append(relationship.getJoins().get(0).getReferencedColumnName())
-								.append("\", nullable = true, updatable = false, insertable = false)").append(NEWLINE);
 					}
 
+					fields.append(INDENT1).append(joinColumns).append(NEWLINE);
 					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
 							.append(";").append(NEWLINE);
+
 					addImport("javax.persistence.JoinColumn");
 				}
 
