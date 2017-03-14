@@ -175,7 +175,7 @@ public class GenerateTests {
 			final String bodyVariable = !methodVariables.containsKey("body") || methodVariables.get("body").isEmpty()
 					? null : methodVariables.get("body").get(0).split(" ")[1];
 			final String responseType = generator.getJavaType(
-					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 

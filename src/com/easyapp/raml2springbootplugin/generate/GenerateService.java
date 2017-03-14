@@ -72,12 +72,13 @@ public class GenerateService {
 		resource.methods().stream().forEach(method -> {
 			final StringBuffer methods = new StringBuffer();
 			final String responseType = generator.getJavaType(
-					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
-			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ")
-					.append(method.method()).append(method.resource().displayName().value().replaceAll(" ", ""))
+			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
+
+			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ").append(methodName)
 					.append("(").append(getMethodParameters(method)).append(") throws Exception {")
 					.append(CodeGenerator.NEWLINE);
 			methods.append(CodeGenerator.INDENT2).append("// TODO: Build Business Logic Here")
@@ -96,7 +97,8 @@ public class GenerateService {
 		final String apiTitle = api.title().value().replaceAll(" ", "");
 
 		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage(), "service",
-				Arrays.asList("@Service"), false, apiTitle + "Service", null, null, codeGenConfig.getExternalConfig().overwriteFiles());
+				Arrays.asList("@Service"), false, apiTitle + "Service", null, null,
+				codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("org.springframework.stereotype.Service");
 	}
 

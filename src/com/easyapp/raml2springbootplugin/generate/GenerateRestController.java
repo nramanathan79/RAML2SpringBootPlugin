@@ -163,15 +163,15 @@ public class GenerateRestController {
 			generator.addImport("org.springframework.web.bind.annotation.RequestMapping");
 			generator.addImport("org.springframework.web.bind.annotation.RequestMethod");
 
-			final String methodName = method.method() + resource.displayName().value().replaceAll(" ", "");
+			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
 
 			final String responseType = generator.getJavaType(
-					method.responses().stream().filter(response -> ("200").equals(response.code().value()))
+					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
 							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			// Get the exceptions
-			method.responses().stream().filter(response -> !("200").equals(response.code().value()))
+			method.responses().stream().filter(response -> !response.code().value().startsWith("2"))
 					.forEach(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
 						final String errorReturnType = generator.getJavaType(response.body().get(0).type(),
@@ -179,7 +179,6 @@ public class GenerateRestController {
 
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
 						generator.addImport(codeGenConfig.getBasePackage() + ".exception." + exceptionClassName);
-						generator.addImport(codeGenConfig.getBasePackage() + ".error." + errorReturnType);
 					});
 
 			methods.append(CodeGenerator.INDENT1).append("public ResponseEntity<").append(responseType).append("> ")
@@ -207,9 +206,9 @@ public class GenerateRestController {
 		this.codeGenConfig = codeGenConfig;
 		apiTitle = api.title().value().replaceAll(" ", "");
 		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
-		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage(), "restcontroller", Arrays.asList("@RestController"), false,
-				apiTitle + "RestController", null, null, codeGenConfig.getExternalConfig().overwriteFiles());
+		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage(),
+				"restcontroller", Arrays.asList("@RestController"), false, apiTitle + "RestController", null, null,
+				codeGenConfig.getExternalConfig().overwriteFiles());
 		generator.addImport("org.springframework.web.bind.annotation.RestController");
 	}
 

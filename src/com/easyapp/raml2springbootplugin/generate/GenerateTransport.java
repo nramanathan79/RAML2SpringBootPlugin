@@ -19,9 +19,9 @@ public class GenerateTransport {
 	final CodeGenConfig codeGenConfig;
 	final Map<String, Set<TypeDeclaration>> transportTypes = new HashMap<>();
 
-	private void addToMap(final TypeDeclaration body, final String responseType) {
-		final String key = responseType == null || "200".equals(responseType) ? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE
-				: CodeGenerator.ERROR_TRANSPORT_PACKAGE;
+	private void addToMap(final TypeDeclaration body, final String responseCode) {
+		final String key = responseCode == null || responseCode.startsWith("2")
+				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
 
 		Set<TypeDeclaration> types = transportTypes.get(key);
 
@@ -29,10 +29,10 @@ public class GenerateTransport {
 			types = new HashSet<>();
 		}
 
-		if (!types.stream().anyMatch(type -> type.type().equals(body.type()))) {
+		//if (!types.stream().anyMatch(type -> type.type().equals(body.type()))) {
 			types.add(body);
 			transportTypes.put(key, types);
-		}
+		//}
 	}
 
 	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
@@ -52,10 +52,10 @@ public class GenerateTransport {
 		objectType.properties().stream().forEach(property -> {
 			ObjectTypeDeclaration propertyType = null;
 
-			if (ArrayTypeDeclaration.class.isAssignableFrom(property.getClass())) {
+			if (property instanceof ArrayTypeDeclaration) {
 				final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
 				propertyType = (ObjectTypeDeclaration) arrayType.items();
-			} else if (ObjectTypeDeclaration.class.isAssignableFrom(property.getClass())) {
+			} else if (property instanceof ObjectTypeDeclaration) {
 				propertyType = (ObjectTypeDeclaration) property;
 			}
 
@@ -96,16 +96,17 @@ public class GenerateTransport {
 			transportType.getValue().stream().forEach(type -> {
 				ObjectTypeDeclaration objectType = null;
 
-				if (ArrayTypeDeclaration.class.isAssignableFrom(type.getClass())) {
+				if (type instanceof ArrayTypeDeclaration) {
 					final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) type;
 					objectType = (ObjectTypeDeclaration) arrayType.items();
-				} else if (ObjectTypeDeclaration.class.isAssignableFrom(type.getClass())) {
+				} else if (type instanceof ObjectTypeDeclaration) {
 					objectType = (ObjectTypeDeclaration) type;
 				}
 
-				generateTransport(transportType.getKey(), objectType);
+				if (objectType != null) {
+					generateTransport(transportType.getKey(), objectType);
+				}
 			});
-
 		});
 	}
 }

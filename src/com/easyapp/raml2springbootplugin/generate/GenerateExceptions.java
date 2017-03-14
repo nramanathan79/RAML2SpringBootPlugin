@@ -18,7 +18,7 @@ public class GenerateExceptions {
 	private void getResourceErrorResponses(final Resource resource) {
 		resource.methods().stream().forEach(method -> {
 			responseCodes.addAll(method.responses().stream().map(response -> response.code().value())
-					.filter(responseCode -> !responseCode.equals("200")).collect(Collectors.toSet()));
+					.filter(responseCode -> !responseCode.startsWith("2")).collect(Collectors.toSet()));
 		});
 
 		resource.resources().stream().forEach(subResource -> getResourceErrorResponses(subResource));

@@ -59,9 +59,14 @@ public class CodeGenerator {
 			return "LocalDateTime";
 		} else if ("boolean".equals(strippedFieldType)) {
 			return "Boolean";
+		} else if ("null".equals(strippedFieldType)) {
+			return "void";
 		} else {
 			if (strippedFieldType.contains("-")) {
+				if (!strippedFieldType.equals("java-lang-Error")) {
 				addImport(strippedFieldType.replaceAll("-", "."));
+				}
+
 				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
 			} else {
 				addImport(basePackageName + "." + transportPackageName + "." + strippedFieldType);
