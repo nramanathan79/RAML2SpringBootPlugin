@@ -18,9 +18,8 @@ public class GenerateJPA {
 
 	private void generateEmbeddable(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final String className = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Id";
-		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage(), "entity", Arrays.asList("@Embeddable"), false, className, null,
-				Arrays.asList("Serializable"), codeGenConfig.getExternalConfig().overwriteFiles());
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "entity", Arrays.asList("@Embeddable"), false,
+				className, null, Arrays.asList("Serializable"));
 
 		generator.addImport("javax.persistence.Embeddable");
 		generator.addImport("java.io.Serializable");
@@ -106,11 +105,9 @@ public class GenerateJPA {
 	}
 
 	private void generateEntity(final List<ColumnDefinition> columns, final Table table) throws Exception {
-		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage(), "entity",
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "entity",
 				Arrays.asList("@Entity", "@Table(name = \"" + table.getTableName().toUpperCase() + "\")"), false,
-				GeneratorUtil.getTitleCase(table.getTableName(), "_"), null, Arrays.asList("Serializable"),
-				codeGenConfig.getExternalConfig().overwriteFiles());
+				GeneratorUtil.getTitleCase(table.getTableName(), "_"), null, Arrays.asList("Serializable"));
 
 		generator.addImport("javax.persistence.Entity");
 		generator.addImport("javax.persistence.Table");
@@ -122,13 +119,13 @@ public class GenerateJPA {
 	}
 
 	private void generateRepository(final String entityClassName, final String entityKeyClassName) throws Exception {
-		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage(), "repository", Arrays.asList("@Repository"), true,
-				entityClassName + "Repository", "JpaRepository<" + entityClassName + ", " + entityKeyClassName + ">",
-				null, codeGenConfig.getExternalConfig().overwriteFiles());
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "repository", Arrays.asList("@Repository"),
+				true, entityClassName + "Repository",
+				"JpaRepository<" + entityClassName + ", " + entityKeyClassName + ">", null);
 		generator.addImport("org.springframework.stereotype.Repository");
 		generator.addImport("org.springframework.data.jpa.repository.JpaRepository");
-		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-data-jpa", null);
+		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-data-jpa",
+				null);
 
 		if (entityKeyClassName.endsWith("Date") || entityKeyClassName.endsWith("Time")) {
 			generator.addImport("java.time." + entityKeyClassName);

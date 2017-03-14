@@ -206,9 +206,8 @@ public class GenerateRestController {
 		this.codeGenConfig = codeGenConfig;
 		apiTitle = api.title().value().replaceAll(" ", "");
 		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
-		generator = new CodeGenerator(codeGenConfig.getSourceDirectory(), codeGenConfig.getBasePackage(),
-				"restcontroller", Arrays.asList("@RestController"), false, apiTitle + "RestController", null, null,
-				codeGenConfig.getExternalConfig().overwriteFiles());
+		generator = new CodeGenerator(codeGenConfig, "restcontroller", Arrays.asList("@RestController"), false,
+				apiTitle + "RestController", null, null);
 		generator.addImport("org.springframework.web.bind.annotation.RestController");
 	}
 

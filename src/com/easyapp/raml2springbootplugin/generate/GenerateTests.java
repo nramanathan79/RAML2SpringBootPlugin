@@ -102,11 +102,10 @@ public class GenerateTests {
 
 	public GenerateTests(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
-		generator = new CodeGenerator(codeGenConfig.getTestDirectory(), codeGenConfig.getBasePackage(), null,
+		generator = new CodeGenerator(codeGenConfig, null,
 				Arrays.asList("@RunWith(SpringRunner.class)",
 						"@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)"),
-				false, codeGenConfig.getTestClassName(), null, null,
-				codeGenConfig.getExternalConfig().overwriteFiles());
+				false, codeGenConfig.getTestClassName(), null, null);
 		generator.addImport("org.junit.runner.RunWith");
 		generator.addImport("org.springframework.test.context.junit4.SpringRunner");
 		generator.addImport("org.springframework.boot.test.context.SpringBootTest");

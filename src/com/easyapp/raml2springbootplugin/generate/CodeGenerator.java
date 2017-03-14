@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.springframework.util.StringUtils;
 
+import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 import com.easyapp.raml2springbootplugin.config.ExternalConfig.JpaConfig.Table;
 import com.easyapp.raml2springbootplugin.generate.util.ColumnDefinition;
 import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
@@ -32,10 +33,8 @@ public class CodeGenerator {
 	public static final String DEFAULT_TRANSPORT_PACKAGE = "transport";
 	public static final String ERROR_TRANSPORT_PACKAGE = "error";
 
-	private final String sourceDirectory;
-	private final String basePackageName;
+	private final CodeGenConfig codeGenConfig;
 	private final String packageName;
-	private final boolean overwriteFile;
 	private final Path codeFilePath;
 	private final Map<String, Set<String>> imports = new HashMap<>();
 	private final StringBuffer codeBlock = new StringBuffer();
@@ -67,9 +66,18 @@ public class CodeGenerator {
 					addImport(strippedFieldType.replaceAll("-", "."));
 				}
 
+				if (strippedFieldType.contains("jpa")) {
+					try {
+						GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot",
+								"spring-boot-starter-data-jpa", null);
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+
 				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
 			} else {
-				addImport(basePackageName + "." + transportPackageName + "." + strippedFieldType);
+				addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType);
 				return strippedFieldType;
 			}
 		}
@@ -91,26 +99,26 @@ public class CodeGenerator {
 
 		if (javaDataType.endsWith("Date") || javaDataType.endsWith("Time")) {
 			addImport("java.time." + javaDataType);
-			GeneratorUtil.createAttributeConverter(sourceDirectory, basePackageName + ".repository", javaDataType,
-					overwriteFile);
+			GeneratorUtil.createAttributeConverter(codeGenConfig.getSourceDirectory(),
+					codeGenConfig.getBasePackage() + ".repository", javaDataType,
+					codeGenConfig.getExternalConfig().overwriteFiles());
 		} else if (javaDataType.equals("Unknown") && dataType == JDBCType.JAVA_OBJECT) {
 			javaDataType = GeneratorUtil.getTitleCase(tableName, "_") + "Id";
-			addImport(basePackageName + ".entity." + javaDataType);
+			addImport(codeGenConfig.getBasePackage() + ".entity." + javaDataType);
 		}
 
 		return javaDataType;
 	}
 
-	public CodeGenerator(final String sourceDirectory, final String basePackageName, final String packageNameSuffix,
+	public CodeGenerator(final CodeGenConfig codeGenConfig, final String packageNameSuffix,
 			final List<String> classAnnotations, final boolean isInterface, final String className,
-			final String extendsFrom, final List<String> implementsList, final boolean overwriteFile) {
-		this.sourceDirectory = sourceDirectory;
-		this.basePackageName = basePackageName;
-		this.packageName = StringUtils.isEmpty(packageNameSuffix) ? basePackageName
-				: basePackageName + "." + packageNameSuffix;
-		this.overwriteFile = overwriteFile;
+			final String extendsFrom, final List<String> implementsList) {
+		this.codeGenConfig = codeGenConfig;
+		this.packageName = StringUtils.isEmpty(packageNameSuffix) ? codeGenConfig.getBasePackage()
+				: codeGenConfig.getBasePackage() + "." + packageNameSuffix;
 
-		final File directory = new File(sourceDirectory + File.separator + packageName.replace(".", File.separator));
+		final File directory = new File(
+				codeGenConfig.getSourceDirectory() + File.separator + packageName.replace(".", File.separator));
 
 		if (!directory.exists()) {
 			directory.mkdirs();
@@ -118,7 +126,7 @@ public class CodeGenerator {
 
 		String filePath = directory + File.separator + className + ".java";
 
-		if (Files.exists(Paths.get(filePath)) && !overwriteFile) {
+		if (Files.exists(Paths.get(filePath)) && !codeGenConfig.getExternalConfig().overwriteFiles()) {
 			filePath += ".MERGE";
 		}
 
@@ -214,16 +222,16 @@ public class CodeGenerator {
 			methods.append(INDENT2).append("return ").append(member.name()).append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
 
-			methods.append(INDENT1).append("public void set").append(functionName).append("(final ").append(memberJavaType)
-					.append(" ").append(member.name()).append(") {").append(NEWLINE);
+			methods.append(INDENT1).append("public void set").append(functionName).append("(final ")
+					.append(memberJavaType).append(" ").append(member.name()).append(") {").append(NEWLINE);
 			methods.append(INDENT2).append("this.").append(member.name()).append(" = ").append(member.name())
 					.append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE);
 
 			if (memberJavaType.startsWith("List<")) {
 				methods.append(NEWLINE).append(INDENT1).append("public void add").append(functionName).append("(final ")
-						.append(memberJavaType.substring(5, memberJavaType.length() - 1)).append(" ").append(member.name())
-						.append(") {").append(NEWLINE);
+						.append(memberJavaType.substring(5, memberJavaType.length() - 1)).append(" ")
+						.append(member.name()).append(") {").append(NEWLINE);
 				methods.append(INDENT2).append("this.").append(member.name()).append(".add(").append(member.name())
 						.append(");").append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE);

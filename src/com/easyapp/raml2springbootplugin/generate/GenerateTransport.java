@@ -86,10 +86,8 @@ public class GenerateTransport {
 
 	private void generateTransport() {
 		transportTypes.forEach(transportType -> {
-			final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-					codeGenConfig.getBasePackage(), transportType.getPackageName(), null, false,
-					transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"),
-					codeGenConfig.getExternalConfig().overwriteFiles());
+			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(), null,
+					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"));
 			generator.addImport("java.io.Serializable");
 
 			final StringBuffer blocks = new StringBuffer();
