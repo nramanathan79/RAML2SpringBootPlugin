@@ -161,7 +161,7 @@ public class GenerateTests {
 	}
 
 	private void createResourceMethods(final Resource resource) {
-		final String resourceEndPointVariable = resource.resourcePath().split("/")[1] + "EndPoint";
+		final String resourceEndPointVariable = resource.displayName().value() + "EndPoint";
 
 		members.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("private final String ")
 				.append(resourceEndPointVariable).append(" = \"").append(resource.resourcePath()).append("\";");

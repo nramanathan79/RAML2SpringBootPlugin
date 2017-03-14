@@ -22,6 +22,13 @@ public class RAML2SpringBoot {
 
 		final Api api = ramlModelResult.getApiV10();
 
+		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
+		
+		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
+			GenerateJPA jpa = new GenerateJPA(codeGenConfig);
+			jpa.create();
+		}
+
 		GenerateExceptions exceptions = new GenerateExceptions(api, codeGenConfig);
 		exceptions.create();
 
@@ -42,13 +49,6 @@ public class RAML2SpringBoot {
 		if (codeGenConfig.getExternalConfig().dockerize()) {
 			GenerateDocker docker = new GenerateDocker(codeGenConfig);
 			docker.create();
-		}
-		
-		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
-		
-		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
-			GenerateJPA jpa = new GenerateJPA(codeGenConfig);
-			jpa.create();
 		}
 	}
 }

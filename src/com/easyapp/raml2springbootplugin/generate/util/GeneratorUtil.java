@@ -201,4 +201,17 @@ public class GeneratorUtil {
 
 		attributeConvertersCompleted.add(entityKeyClassName);
 	}
+	
+	public static boolean isScalarRAMLType(final String type) {
+		return ("string".equals(type) ||
+				"boolean".equals(type) ||
+				"number".equals(type) ||
+				"integer".equals(type) ||
+				"date-only".equals(type) ||
+				"time-only".equals(type) ||
+				"datetime-only".equals(type) ||
+				"datetime".equals(type) ||
+				"null".equals(type) ||
+				"file".equals(type));
+	}
 }

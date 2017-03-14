@@ -64,7 +64,7 @@ public class CodeGenerator {
 		} else {
 			if (strippedFieldType.contains("-")) {
 				if (!strippedFieldType.equals("java-lang-Error")) {
-				addImport(strippedFieldType.replaceAll("-", "."));
+					addImport(strippedFieldType.replaceAll("-", "."));
 				}
 
 				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
@@ -178,36 +178,51 @@ public class CodeGenerator {
 		}
 	}
 
-	public void addMembers(final Set<TypeDeclaration> members, final String transportPackageName) {
+	public void addMembers(final List<TypeDeclaration> members, final String transportPackageName) {
 		final Comparator<TypeDeclaration> byName = (e1, e2) -> e1.name().compareTo(e2.name());
 		final StringBuffer fields = new StringBuffer();
 
 		members.stream().sorted(byName).forEach(member -> {
-			fields.append(INDENT1).append("private ").append(getJavaType(member.type(), transportPackageName))
-					.append(" ").append(member.name()).append(";").append(NEWLINE);
+			String memberType = member.type();
+
+			if (!GeneratorUtil.isScalarRAMLType(memberType)
+					&& GeneratorUtil.isScalarRAMLType(member.parentTypes().get(0).type())) {
+				memberType = member.parentTypes().get(0).type();
+			}
+
+			fields.append(INDENT1).append("private ").append(getJavaType(memberType, transportPackageName)).append(" ")
+					.append(member.name()).append(";").append(NEWLINE);
 		});
 
 		codeBlocks.add(fields.toString());
 
 		members.stream().sorted(byName).forEach(member -> {
 			final StringBuffer methods = new StringBuffer();
-			final String memberType = getJavaType(member.type(), transportPackageName);
+
+			String memberType = member.type();
+
+			if (!GeneratorUtil.isScalarRAMLType(memberType)
+					&& GeneratorUtil.isScalarRAMLType(member.parentTypes().get(0).type())) {
+				memberType = member.parentTypes().get(0).type();
+			}
+
+			final String memberJavaType = getJavaType(memberType, transportPackageName);
 			final String functionName = Character.toUpperCase(member.name().charAt(0)) + member.name().substring(1);
 
-			methods.append(INDENT1).append("public ").append(memberType).append(" get").append(functionName)
+			methods.append(INDENT1).append("public ").append(memberJavaType).append(" get").append(functionName)
 					.append("() {").append(NEWLINE);
 			methods.append(INDENT2).append("return ").append(member.name()).append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
 
-			methods.append(INDENT1).append("public void set").append(functionName).append("(final ").append(memberType)
+			methods.append(INDENT1).append("public void set").append(functionName).append("(final ").append(memberJavaType)
 					.append(" ").append(member.name()).append(") {").append(NEWLINE);
 			methods.append(INDENT2).append("this.").append(member.name()).append(" = ").append(member.name())
 					.append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE);
 
-			if (memberType.startsWith("List<")) {
+			if (memberJavaType.startsWith("List<")) {
 				methods.append(NEWLINE).append(INDENT1).append("public void add").append(functionName).append("(final ")
-						.append(memberType.substring(5, memberType.length() - 1)).append(" ").append(member.name())
+						.append(memberJavaType.substring(5, memberJavaType.length() - 1)).append(" ").append(member.name())
 						.append(") {").append(NEWLINE);
 				methods.append(INDENT2).append("this.").append(member.name()).append(".add(").append(member.name())
 						.append(");").append(NEWLINE);

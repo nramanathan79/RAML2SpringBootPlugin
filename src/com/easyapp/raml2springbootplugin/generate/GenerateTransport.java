@@ -1,10 +1,8 @@
 package com.easyapp.raml2springbootplugin.generate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import org.raml.v2.api.model.v10.api.Api;
 import org.raml.v2.api.model.v10.datamodel.ArrayTypeDeclaration;
@@ -13,75 +11,95 @@ import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.resources.Resource;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
+import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
+import com.easyapp.raml2springbootplugin.generate.util.TransportDefinition;
 
 public class GenerateTransport {
 	final Api api;
 	final CodeGenConfig codeGenConfig;
-	final Map<String, Set<TypeDeclaration>> transportTypes = new HashMap<>();
+	final List<TransportDefinition> transportTypes = new ArrayList<>();
 
-	private void addToMap(final TypeDeclaration body, final String responseCode) {
-		final String key = responseCode == null || responseCode.startsWith("2")
-				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
-
-		Set<TypeDeclaration> types = transportTypes.get(key);
-
-		if (types == null) {
-			types = new HashSet<>();
+	private void recursivelyAddTypes(final String packageName, final ObjectTypeDeclaration objectType,
+			final boolean isArrayType) {
+		if (transportTypes.stream()
+				.noneMatch(transportType -> objectType.type().equals(transportType.getClassName()))) {
+			final String className = isArrayType ? objectType.name()
+					: ("object".equals(objectType.type()) ? objectType.name() : objectType.type());
+			final String extendsFrom = isArrayType ? objectType.type() : null;
+			transportTypes.add(new TransportDefinition(packageName, className, extendsFrom, objectType));
 		}
 
-		//if (!types.stream().anyMatch(type -> type.type().equals(body.type()))) {
-			types.add(body);
-			transportTypes.put(key, types);
-		//}
+		if (objectType.properties() != null) {
+			objectType.properties().forEach(property -> {
+				ObjectTypeDeclaration propertyType = null;
+				boolean objectIsArrayType = false;
+
+				if (property instanceof ArrayTypeDeclaration) {
+					final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
+					propertyType = (ObjectTypeDeclaration) arrayType.items();
+					objectIsArrayType = true;
+				} else if (property instanceof ObjectTypeDeclaration) {
+					propertyType = (ObjectTypeDeclaration) property;
+				}
+
+				if (propertyType != null) {
+					recursivelyAddTypes(packageName, propertyType, objectIsArrayType);
+				}
+			});
+		}
 	}
 
-	private void generateTransport(final String transportPackageName, final ObjectTypeDeclaration objectType) {
-		final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
-				codeGenConfig.getBasePackage(), transportPackageName, null, false,
-				"object".equals(objectType.type()) ? objectType.name() : objectType.type(), null,
-				Arrays.asList("Serializable"), codeGenConfig.getExternalConfig().overwriteFiles());
-		generator.addImport("java.io.Serializable");
+	private void addToMap(final TypeDeclaration body, final String responseCode) {
+		final String packageName = responseCode == null || responseCode.startsWith("2")
+				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
 
-		final StringBuffer blocks = new StringBuffer();
-		blocks.append(CodeGenerator.INDENT1).append("private static final long serialVersionUID = 1L;")
-				.append(CodeGenerator.NEWLINE);
-		generator.addCodeBlock(blocks.toString());
+		ObjectTypeDeclaration objectType = null;
+		boolean objectIsArrayType = false;
 
-		final Set<TypeDeclaration> members = new HashSet<>();
+		if (body instanceof ArrayTypeDeclaration) {
+			final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) body;
+			objectType = (ObjectTypeDeclaration) arrayType.items();
+			objectIsArrayType = true;
+		} else if (body instanceof ObjectTypeDeclaration) {
+			objectType = (ObjectTypeDeclaration) body;
+		}
 
-		objectType.properties().stream().forEach(property -> {
-			ObjectTypeDeclaration propertyType = null;
-
-			if (property instanceof ArrayTypeDeclaration) {
-				final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
-				propertyType = (ObjectTypeDeclaration) arrayType.items();
-			} else if (property instanceof ObjectTypeDeclaration) {
-				propertyType = (ObjectTypeDeclaration) property;
-			}
-
-			if (propertyType != null) {
-				generateTransport(transportPackageName, propertyType);
-			}
-
-			members.add(property);
-		});
-
-		generator.addMembers(members, transportPackageName);
-
-		generator.writeCode();
+		if (objectType != null) {
+			recursivelyAddTypes(packageName, objectType, objectIsArrayType);
+		}
 	}
 
 	private void getTransportTypes(final Resource resource) {
 		resource.methods().stream().forEach(method -> {
-			method.body().stream().filter(body -> !body.type().contains("-")).forEach(body -> addToMap(body, null));
+			method.body().stream().filter(body -> !body.type().contains("-"))
+					.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type())).forEach(body -> addToMap(body, null));
 
 			method.responses().stream().forEach(response -> {
 				response.body().stream().filter(body -> !body.type().contains("-"))
+						.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type()))
 						.forEach(body -> addToMap(body, response.code().value()));
 			});
 		});
 
 		resource.resources().stream().forEach(subResource -> getTransportTypes(subResource));
+	}
+
+	private void generateTransport() {
+		transportTypes.forEach(transportType -> {
+			final CodeGenerator generator = new CodeGenerator(codeGenConfig.getSourceDirectory(),
+					codeGenConfig.getBasePackage(), transportType.getPackageName(), null, false,
+					transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"),
+					codeGenConfig.getExternalConfig().overwriteFiles());
+			generator.addImport("java.io.Serializable");
+
+			final StringBuffer blocks = new StringBuffer();
+			blocks.append(CodeGenerator.INDENT1).append("private static final long serialVersionUID = 1L;")
+					.append(CodeGenerator.NEWLINE);
+			generator.addCodeBlock(blocks.toString());
+
+			generator.addMembers(transportType.getDeclaredProperties(transportTypes), transportType.getPackageName());
+			generator.writeCode();
+		});
 	}
 
 	public GenerateTransport(final Api api, final CodeGenConfig codeGenConfig) {
@@ -91,22 +109,6 @@ public class GenerateTransport {
 
 	public void create() {
 		api.resources().stream().forEach(resource -> getTransportTypes(resource));
-
-		transportTypes.entrySet().stream().forEach(transportType -> {
-			transportType.getValue().stream().forEach(type -> {
-				ObjectTypeDeclaration objectType = null;
-
-				if (type instanceof ArrayTypeDeclaration) {
-					final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) type;
-					objectType = (ObjectTypeDeclaration) arrayType.items();
-				} else if (type instanceof ObjectTypeDeclaration) {
-					objectType = (ObjectTypeDeclaration) type;
-				}
-
-				if (objectType != null) {
-					generateTransport(transportType.getKey(), objectType);
-				}
-			});
-		});
+		generateTransport();
 	}
 }
