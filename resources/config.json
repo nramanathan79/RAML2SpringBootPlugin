@@ -29,7 +29,7 @@
 			            "relationshipType": "ManyToOne",
 			            "referencedTableName": "country",
 				        "joins": [
-				            {"columnName": "country_name", "referencedColumnName": "countryname"}
+				            {"columnName": "country_name", "referencedColumnName": "country_name"}
 				        ]
 			        }
 			    ]
