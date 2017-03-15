@@ -25,7 +25,7 @@ public class GenerateTransport {
 				.noneMatch(transportType -> objectType.type().equals(transportType.getClassName()))) {
 			final String className = isArrayType ? objectType.name()
 					: ("object".equals(objectType.type()) ? objectType.name() : objectType.type());
-			final String extendsFrom = isArrayType ? objectType.type() : null;
+			final String extendsFrom = isArrayType ? ("object".equals(objectType.type()) ? null : objectType.type()) : null;
 			transportTypes.add(new TransportDefinition(packageName, className, extendsFrom, objectType));
 		}
 
@@ -87,7 +87,7 @@ public class GenerateTransport {
 	private void generateTransport() {
 		transportTypes.forEach(transportType -> {
 			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(), null,
-					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"));
+					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"), false);
 			generator.addImport("java.io.Serializable");
 
 			final StringBuffer blocks = new StringBuffer();

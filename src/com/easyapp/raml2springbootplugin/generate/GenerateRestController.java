@@ -207,7 +207,7 @@ public class GenerateRestController {
 		apiTitle = api.title().value().replaceAll(" ", "");
 		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
 		generator = new CodeGenerator(codeGenConfig, "restcontroller", Arrays.asList("@RestController"), false,
-				apiTitle + "RestController", null, null);
+				apiTitle + "RestController", null, null, false);
 		generator.addImport("org.springframework.web.bind.annotation.RestController");
 	}
 

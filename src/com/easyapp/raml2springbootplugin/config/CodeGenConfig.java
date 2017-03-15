@@ -18,9 +18,7 @@ public class CodeGenConfig {
 	private String projectDirectory = null;
 	private String sourceDirectory = null;
 	private String testDirectory = null;
-	private String testFilePath = null;
 	private String pomFilePath = null;
-	private String testClassName = null;
 	private String basePackage = null;
 	private Properties applicationProperties = new Properties();
 	private ExternalConfig externalConfig = null;
@@ -39,23 +37,6 @@ public class CodeGenConfig {
 			} catch (IOException ioe) {
 				// Do nothing
 			}
-		}
-	}
-
-	private void getTestClass(final String directoryPath) {
-		try (final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(directoryPath))) {
-			directoryStream.forEach(path -> {
-				if (path.toString().endsWith("ApplicationTests.java")) {
-					final String testFileName = path.getFileName().toString();
-
-					testFilePath = path.toString();
-					testClassName = testFileName.substring(0, testFileName.indexOf(".java"));
-				} else {
-					getTestClass(path.toString());
-				}
-			});
-		} catch (IOException ioe) {
-			// Do nothing
 		}
 	}
 
@@ -83,7 +64,6 @@ public class CodeGenConfig {
 		this.testDirectory = this.projectDirectory + "/src/test/java";
 		this.pomFilePath = this.projectDirectory + "/pom.xml";
 		getBasePackage(this.sourceDirectory);
-		getTestClass(this.testDirectory);
 		getApplicationProperties(this.projectDirectory + "/src/main/resources/application.properties");
 		getExternalConfig(this.projectDirectory + "/src/main/resources/config.json");
 	}
@@ -125,24 +105,8 @@ public class CodeGenConfig {
 			return "Test Directory: " + testDirectory + " does NOT exist";
 		}
 
-		if (testFilePath == null) {
-			return "Test file is missing";
-		}
-
-		if (!Files.exists(Paths.get(testFilePath))) {
-			return "Test file: " + testFilePath + " does NOT exist";
-		}
-
-		if (!Files.isWritable(Paths.get(testFilePath))) {
-			return "Test file: " + testFilePath + " is not writable";
-		}
-
 		if (!Files.exists(Paths.get(pomFilePath))) {
 			return "Maven POM file: " + pomFilePath + " does NOT exist";
-		}
-
-		if (testClassName == null) {
-			return "Test class is missing";
 		}
 
 		if (basePackage == null) {
@@ -195,16 +159,8 @@ public class CodeGenConfig {
 		return testDirectory;
 	}
 
-	public String getTestFilePath() {
-		return testFilePath;
-	}
-
 	public String getPomFilePath() {
 		return pomFilePath;
-	}
-
-	public String getTestClassName() {
-		return testClassName;
 	}
 
 	public ExternalConfig getExternalConfig() {

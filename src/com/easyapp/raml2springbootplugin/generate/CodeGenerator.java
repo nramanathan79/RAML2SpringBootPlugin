@@ -62,11 +62,9 @@ public class CodeGenerator {
 			return "void";
 		} else {
 			if (strippedFieldType.contains("-")) {
-				if (!strippedFieldType.equals("java-lang-Error")) {
-					addImport(strippedFieldType.replaceAll("-", "."));
-				}
+				addImport(strippedFieldType.replaceAll("-", "."));
 
-				if (strippedFieldType.contains("jpa")) {
+				if (strippedFieldType.contains("Page")) {
 					try {
 						GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot",
 								"spring-boot-starter-data-jpa", null);
@@ -112,13 +110,13 @@ public class CodeGenerator {
 
 	public CodeGenerator(final CodeGenConfig codeGenConfig, final String packageNameSuffix,
 			final List<String> classAnnotations, final boolean isInterface, final String className,
-			final String extendsFrom, final List<String> implementsList) {
+			final String extendsFrom, final List<String> implementsList, final boolean test) {
 		this.codeGenConfig = codeGenConfig;
 		this.packageName = StringUtils.isEmpty(packageNameSuffix) ? codeGenConfig.getBasePackage()
 				: codeGenConfig.getBasePackage() + "." + packageNameSuffix;
 
-		final File directory = new File(
-				codeGenConfig.getSourceDirectory() + File.separator + packageName.replace(".", File.separator));
+		final File directory = new File((test ? codeGenConfig.getTestDirectory() : codeGenConfig.getSourceDirectory())
+				+ File.separator + packageName.replace(".", File.separator));
 
 		if (!directory.exists()) {
 			directory.mkdirs();
@@ -197,9 +195,15 @@ public class CodeGenerator {
 					&& GeneratorUtil.isScalarRAMLType(member.parentTypes().get(0).type())) {
 				memberType = member.parentTypes().get(0).type();
 			}
+			
+			String memberName = member.name();
+			
+			if (memberName.endsWith("?")) {
+				memberName = memberName.substring(0, memberName.length() - 1);
+			}
 
 			fields.append(INDENT1).append("private ").append(getJavaType(memberType, transportPackageName)).append(" ")
-					.append(member.name()).append(";").append(NEWLINE);
+					.append(memberName).append(";").append(NEWLINE);
 		});
 
 		codeBlocks.add(fields.toString());
@@ -214,25 +218,31 @@ public class CodeGenerator {
 				memberType = member.parentTypes().get(0).type();
 			}
 
+			String memberName = member.name();
+			
+			if (memberName.endsWith("?")) {
+				memberName = memberName.substring(0, memberName.length() - 1);
+			}
+
 			final String memberJavaType = getJavaType(memberType, transportPackageName);
-			final String functionName = Character.toUpperCase(member.name().charAt(0)) + member.name().substring(1);
+			final String functionName = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
 			methods.append(INDENT1).append("public ").append(memberJavaType).append(" get").append(functionName)
 					.append("() {").append(NEWLINE);
-			methods.append(INDENT2).append("return ").append(member.name()).append(";").append(NEWLINE);
+			methods.append(INDENT2).append("return ").append(memberName).append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
 
 			methods.append(INDENT1).append("public void set").append(functionName).append("(final ")
-					.append(memberJavaType).append(" ").append(member.name()).append(") {").append(NEWLINE);
-			methods.append(INDENT2).append("this.").append(member.name()).append(" = ").append(member.name())
+					.append(memberJavaType).append(" ").append(memberName).append(") {").append(NEWLINE);
+			methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName)
 					.append(";").append(NEWLINE);
 			methods.append(INDENT1).append("}").append(NEWLINE);
 
 			if (memberJavaType.startsWith("List<")) {
 				methods.append(NEWLINE).append(INDENT1).append("public void add").append(functionName).append("(final ")
 						.append(memberJavaType.substring(5, memberJavaType.length() - 1)).append(" ")
-						.append(member.name()).append(") {").append(NEWLINE);
-				methods.append(INDENT2).append("this.").append(member.name()).append(".add(").append(member.name())
+						.append(memberName).append(") {").append(NEWLINE);
+				methods.append(INDENT2).append("this.").append(memberName).append(".add(").append(memberName)
 						.append(");").append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE);
 			}

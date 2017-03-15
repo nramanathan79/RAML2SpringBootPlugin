@@ -19,7 +19,7 @@ public class GenerateJPA {
 	private void generateEmbeddable(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final String className = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Id";
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "entity", Arrays.asList("@Embeddable"), false,
-				className, null, Arrays.asList("Serializable"));
+				className, null, Arrays.asList("Serializable"), false);
 
 		generator.addImport("javax.persistence.Embeddable");
 		generator.addImport("java.io.Serializable");
@@ -107,7 +107,7 @@ public class GenerateJPA {
 	private void generateEntity(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "entity",
 				Arrays.asList("@Entity", "@Table(name = \"" + table.getTableName().toUpperCase() + "\")"), false,
-				GeneratorUtil.getTitleCase(table.getTableName(), "_"), null, Arrays.asList("Serializable"));
+				GeneratorUtil.getTitleCase(table.getTableName(), "_"), null, Arrays.asList("Serializable"), false);
 
 		generator.addImport("javax.persistence.Entity");
 		generator.addImport("javax.persistence.Table");
@@ -121,7 +121,7 @@ public class GenerateJPA {
 	private void generateRepository(final String entityClassName, final String entityKeyClassName) throws Exception {
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "repository", Arrays.asList("@Repository"),
 				true, entityClassName + "Repository",
-				"JpaRepository<" + entityClassName + ", " + entityKeyClassName + ">", null);
+				"JpaRepository<" + entityClassName + ", " + entityKeyClassName + ">", null, false);
 		generator.addImport("org.springframework.stereotype.Repository");
 		generator.addImport("org.springframework.data.jpa.repository.JpaRepository");
 		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-data-jpa",

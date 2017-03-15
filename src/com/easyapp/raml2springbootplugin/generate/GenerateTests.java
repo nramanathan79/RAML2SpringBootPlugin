@@ -102,10 +102,11 @@ public class GenerateTests {
 
 	public GenerateTests(final Api api, final CodeGenConfig codeGenConfig) {
 		this.api = api;
+		final String apiTitle = api.title().value().replaceAll(" ", "");
 		generator = new CodeGenerator(codeGenConfig, null,
 				Arrays.asList("@RunWith(SpringRunner.class)",
 						"@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)"),
-				false, codeGenConfig.getTestClassName(), null, null);
+				false, apiTitle + "Tests", null, null, true);
 		generator.addImport("org.junit.runner.RunWith");
 		generator.addImport("org.springframework.test.context.junit4.SpringRunner");
 		generator.addImport("org.springframework.boot.test.context.SpringBootTest");
@@ -179,8 +180,9 @@ public class GenerateTests {
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			method.responses().stream().forEach(response -> {
-				final String methodName = "test" + GeneratorUtil.getTitleCase(method.method(), "-")
-						+ resource.displayName().value().replaceAll(" ", "") + response.code().value();
+				final String methodName = "test"
+						+ GeneratorUtil.getTitleCase(method.method() + " " + resource.displayName().value(), " ")
+						+ response.code().value();
 
 				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("@Test")
 						.append(CodeGenerator.NEWLINE);
@@ -208,6 +210,7 @@ public class GenerateTests {
 					methods.append("null, ");
 				} else {
 					methods.append("new HttpEntity<>(").append(bodyVariable).append("), ");
+					generator.addImport("org.springframework.http.HttpEntity");
 				}
 
 				if (responseType.contains("<")) {
@@ -232,7 +235,6 @@ public class GenerateTests {
 				generator.addImport("org.springframework.web.util.UriComponentsBuilder");
 				generator.addImport("org.springframework.http.ResponseEntity");
 				generator.addImport("org.springframework.http.HttpMethod");
-				generator.addImport("org.springframework.http.HttpEntity");
 				generator.addImport("static org.junit.Assert.assertThat");
 				generator.addImport("static org.hamcrest.CoreMatchers.equalTo");
 			});

@@ -97,7 +97,7 @@ public class GenerateService {
 		final String apiTitle = api.title().value().replaceAll(" ", "");
 
 		generator = new CodeGenerator(codeGenConfig, "service", Arrays.asList("@Service"), false, apiTitle + "Service",
-				null, null);
+				null, null, false);
 		generator.addImport("org.springframework.stereotype.Service");
 	}
 
