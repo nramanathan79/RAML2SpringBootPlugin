@@ -29,7 +29,6 @@
 			            "relationshipType": "ManyToOne",
 			            "referencedTableName": "country",
 				        "joins": [
-				            {"columnName": "continent", "referencedColumnName": "continent"},
 				            {"columnName": "country_name", "referencedColumnName": "countryname"}
 				        ]
 			        }
