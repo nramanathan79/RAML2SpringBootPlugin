@@ -49,7 +49,7 @@ public class GenerateTests {
 			return new ArrayList<>();
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+					.map(uriParam -> generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
 							+ " " + uriParam.name())
 					.collect(Collectors.toList());
 		}
@@ -60,7 +60,7 @@ public class GenerateTests {
 			return new ArrayList<>();
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+					.map(queryParam -> generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
 							+ " " + queryParam.name())
 					.collect(Collectors.toList());
 		}
@@ -84,7 +84,7 @@ public class GenerateTests {
 							Arrays.asList(generator.getJavaType(
 									method.body().isEmpty() ? "string"
 											: GeneratorUtil.getMemberType(method.body().get(0)),
-									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " "
 									+ GeneratorUtil.getRequestBodyVariableName(method)));
 		}
 
@@ -173,10 +173,11 @@ public class GenerateTests {
 							.collect(Collectors.joining(", "));
 			final String bodyVariable = !methodVariables.containsKey("body") || methodVariables.get("body").isEmpty()
 					? null : methodVariables.get("body").get(0).split(" ")[1];
+			final boolean pageType = method.is().stream().anyMatch(trait -> trait.name().equals("Paginated"));
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
 							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
-					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
+					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
 			method.responses().stream().forEach(response -> {
 				final String methodName = "test"

@@ -69,7 +69,7 @@ public class GenerateRestController {
 			return uriParameters.stream()
 					.map(uriParam -> "@PathVariable(name = \"" + uriParam.name() + "\", required = "
 							+ String.valueOf(uriParam.required()) + ") final "
-							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " "
 							+ uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
@@ -86,7 +86,7 @@ public class GenerateRestController {
 							+ (queryParam.defaultValue() != null && queryParam.defaultValue().trim().length() > 0
 									? ", defaultValue = \"" + queryParam.defaultValue() + "\"" : "")
 							+ ") final "
-							+ generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " "
 							+ queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
@@ -101,7 +101,7 @@ public class GenerateRestController {
 				return "@RequestBody final "
 						+ generator.getJavaType(
 								GeneratorUtil.getMemberType(method.body().get(0)),
-								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
 						+ " " + GeneratorUtil.getRequestBodyVariableName(method);
 			}
 		}
@@ -164,18 +164,19 @@ public class GenerateRestController {
 			generator.addImport("org.springframework.web.bind.annotation.RequestMethod");
 
 			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
+			final boolean pageType = method.is().stream().anyMatch(trait -> trait.name().equals("Paginated"));
 
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
 							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
-					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
+					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
 			// Get the exceptions
 			method.responses().stream().filter(response -> !response.code().value().startsWith("2"))
 					.forEach(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
 						final String errorReturnType = generator.getJavaType(GeneratorUtil.getMemberType(response.body().get(0)),
-								CodeGenerator.ERROR_TRANSPORT_PACKAGE);
+								CodeGenerator.ERROR_TRANSPORT_PACKAGE, false);
 
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
 						generator.addImport(codeGenConfig.getBasePackage() + ".exception." + exceptionClassName);
