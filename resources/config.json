@@ -10,9 +10,6 @@
 		"tables": [
 			{
 			    "tableName": "country",
-			    "collectionResource": "countries",
-			    "uriPath": "countries",
-			    "sequenceName": "countryIdSequence",
 			    "relationships": [
 			        {
 			            "relationshipType": "OneToMany",
@@ -22,14 +19,12 @@
 			},
 			{
 			    "tableName": "city",
-			    "collectionResource": "cities",
-			    "uriPath": "cities",
 			    "relationships": [
 			        {
 			            "relationshipType": "ManyToOne",
 			            "referencedTableName": "country",
 				        "joins": [
-				            {"columnName": "country_name", "referencedColumnName": "country_name"}
+				            {"columnName": "country_code", "referencedColumnName": "iso_alpha_2_code"}
 				        ]
 			        }
 			    ]
