@@ -69,10 +69,10 @@ public class GenerateService {
 		resource.methods().stream().forEach(method -> {
 			final StringBuffer methods = new StringBuffer();
 			final boolean pageType = method.is().stream().anyMatch(trait -> trait.name().equals("Paginated"));
-			
-			final String responseType = generator.getJavaType(
-					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
-							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
+
+			final String responseType = generator.getJavaType(method.responses().stream()
+					.filter(response -> response.code().value().startsWith("2"))
+					.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
 			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
@@ -98,6 +98,24 @@ public class GenerateService {
 		generator = new CodeGenerator(codeGenConfig, "service", Arrays.asList("@Service"), false, apiTitle + "Service",
 				null, null, false);
 		generator.addImport("org.springframework.stereotype.Service");
+
+		if (codeGenConfig.getExternalConfig().hasJpaConfig()
+				&& codeGenConfig.getExternalConfig().getJpaConfig().getTables() != null) {
+			codeGenConfig.getExternalConfig().getJpaConfig().getTables().stream().forEach(table -> {
+				final StringBuffer autowire = new StringBuffer();
+				final String repository = GeneratorUtil.getTitleCase(table.getTableName(), "_") + "Repository";
+
+				autowire.append(CodeGenerator.INDENT1).append("@Autowired").append(CodeGenerator.NEWLINE);
+				autowire.append(CodeGenerator.INDENT1).append("private ").append(repository).append(" ")
+						.append(GeneratorUtil.getCamelCase(table.getTableName(), "_")).append(";")
+						.append(CodeGenerator.NEWLINE);
+
+				generator.addCodeBlock(autowire.toString());
+				generator.addImport("org.springframework.beans.factory.annotation.Autowired");
+				generator.addImport(codeGenConfig.getBasePackage() + ".repository." + repository);
+			});
+		}
+
 	}
 
 	public void create() {
