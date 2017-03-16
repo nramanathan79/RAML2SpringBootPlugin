@@ -299,6 +299,13 @@ public class CodeGenerator {
 							.append("(mappedBy = \"").append(GeneratorUtil.getCamelCase(table.getTableName(), "_"))
 							.append("\", fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
+
+					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
+						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
+								.append("\")").append(NEWLINE);
+						addImport("javax.persistence.Where");
+					}
+
 					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
 							.append(";").append(NEWLINE);
 
@@ -309,6 +316,12 @@ public class CodeGenerator {
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
 							.append("(fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
+
+					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
+						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
+								.append("\")").append(NEWLINE);
+						addImport("javax.persistence.Where");
+					}
 
 					String joinColumns = relationship.getJoinColumns();
 					String inverseJoinColumns = relationship.getInverseJoinColumns();
@@ -331,6 +344,12 @@ public class CodeGenerator {
 					fields.append(NEWLINE).append(INDENT1).append("@").append(relationship.getRelationshipType())
 							.append("(fetch = ").append(relationship.getFetchType()).append(", cascade = ")
 							.append(relationship.getCascadeType()).append(")").append(NEWLINE);
+
+					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
+						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
+								.append("\")").append(NEWLINE);
+						addImport("javax.persistence.Where");
+					}
 
 					if (relationship.getJoins() != null) {
 						String joinColumns = relationship.getJoinColumns();

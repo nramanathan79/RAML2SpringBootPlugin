@@ -68,8 +68,6 @@ public class ExternalConfig {
 
 		public static class Table {
 			private String tableName = null;
-			private String collectionResource = null;
-			private String uriPath = null;
 			private String sequenceName = null;
 			private int sequenceIncrement = 1;
 			private List<Relationship> relationships = null;
@@ -80,6 +78,7 @@ public class ExternalConfig {
 				private String fetchType = "FetchType.LAZY";
 				private String cascadeType = "CascadeType.DETACH";
 				private List<Join> joins = null;
+				private String whereClause = null;
 
 				public static class Join {
 					private String columnName = null;
@@ -150,6 +149,14 @@ public class ExternalConfig {
 
 				public List<Join> getJoins() {
 					return joins;
+				}
+
+				public String getWhereClause() {
+					return whereClause;
+				}
+
+				public void setWhereClause(final String whereClause) {
+					this.whereClause = whereClause;
 				}
 
 				public String getJoinColumns() {
@@ -246,22 +253,6 @@ public class ExternalConfig {
 				this.tableName = tableName;
 			}
 
-			public String getCollectionResource() {
-				return collectionResource;
-			}
-
-			public void setCollectionResource(final String collectionResource) {
-				this.collectionResource = collectionResource;
-			}
-
-			public String getUriPath() {
-				return uriPath;
-			}
-
-			public void setUriPath(final String uriPath) {
-				this.uriPath = uriPath;
-			}
-
 			public String getSequenceName() {
 				return sequenceName;
 			}
@@ -289,14 +280,6 @@ public class ExternalConfig {
 			public String getConfigError() {
 				if (StringUtils.isEmpty(tableName)) {
 					return "Table Name is missing in JPA Config";
-				}
-
-				if (StringUtils.isEmpty(collectionResource)) {
-					return "Collection Resource is missing in JPA Config";
-				}
-
-				if (StringUtils.isEmpty(uriPath)) {
-					return "URI Path is missing in JPA Config";
 				}
 
 				if (relationships != null && !relationships.isEmpty()) {

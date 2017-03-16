@@ -13,7 +13,8 @@
 			    "relationships": [
 			        {
 			            "relationshipType": "OneToMany",
-			            "referencedTableName": "city"
+			            "referencedTableName": "city",
+			            "whereClause": "is_capital = 'true'"
 			        }
 			    ]
 			},
