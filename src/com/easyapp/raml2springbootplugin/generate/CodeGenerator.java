@@ -303,7 +303,7 @@ public class CodeGenerator {
 					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
 						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
 								.append("\")").append(NEWLINE);
-						addImport("javax.persistence.Where");
+						addImport("org.hibernate.annotations.Where");
 					}
 
 					fields.append(INDENT1).append("private ").append(memberType).append(" ").append(memberName)
@@ -320,7 +320,7 @@ public class CodeGenerator {
 					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
 						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
 								.append("\")").append(NEWLINE);
-						addImport("javax.persistence.Where");
+						addImport("org.hibernate.annotations.Where");
 					}
 
 					String joinColumns = relationship.getJoinColumns();
@@ -348,7 +348,7 @@ public class CodeGenerator {
 					if (!StringUtils.isEmpty(relationship.getWhereClause())) {
 						fields.append(INDENT1).append("@Where(clause = \"").append(relationship.getWhereClause())
 								.append("\")").append(NEWLINE);
-						addImport("javax.persistence.Where");
+						addImport("org.hibernate.annotations.Where");
 					}
 
 					if (relationship.getJoins() != null) {
