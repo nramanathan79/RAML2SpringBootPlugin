@@ -49,7 +49,7 @@ public class GenerateTests {
 			return new ArrayList<>();
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+					.map(uriParam -> generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 							+ " " + uriParam.name())
 					.collect(Collectors.toList());
 		}
@@ -60,7 +60,7 @@ public class GenerateTests {
 			return new ArrayList<>();
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+					.map(queryParam -> generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 							+ " " + queryParam.name())
 					.collect(Collectors.toList());
 		}
@@ -83,8 +83,7 @@ public class GenerateTests {
 					.put("body",
 							Arrays.asList(generator.getJavaType(
 									method.body().isEmpty() ? "string"
-											: (method.body().get(0).type().isEmpty() ? "string"
-													: method.body().get(0).type()),
+											: GeneratorUtil.getMemberType(method.body().get(0)),
 									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
 									+ GeneratorUtil.getRequestBodyVariableName(method)));
 		}
@@ -176,7 +175,7 @@ public class GenerateTests {
 					? null : methodVariables.get("body").get(0).split(" ")[1];
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
-							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			method.responses().stream().forEach(response -> {

@@ -20,32 +20,31 @@ public class GenerateTransport {
 	final List<TransportDefinition> transportTypes = new ArrayList<>();
 
 	private void recursivelyAddTypes(final String packageName, final ObjectTypeDeclaration objectType,
-			final boolean isArrayType) {
-		if (transportTypes.stream()
-				.noneMatch(transportType -> objectType.type().equals(transportType.getClassName()))) {
-			final String className = isArrayType ? objectType.name()
-					: ("object".equals(objectType.type()) ? objectType.name() : objectType.type());
-			final String extendsFrom = isArrayType ? ("object".equals(objectType.type()) ? null : objectType.type()) : null;
+			final boolean topLevel) {
+		final String className = topLevel ? (objectType.name().contains("/") ? objectType.type() : objectType.name())
+				: ("object".equals(objectType.type()) ? objectType.name() : objectType.type());
+
+		if (transportTypes.stream().noneMatch(transportType -> className.equals(transportType.getClassName()))) {
+			final String extendsFrom = className.equals(objectType.type()) ? null
+					: ("object".equals(objectType.type()) ? null : objectType.type());
 			transportTypes.add(new TransportDefinition(packageName, className, extendsFrom, objectType));
-		}
 
-		if (objectType.properties() != null) {
-			objectType.properties().forEach(property -> {
-				ObjectTypeDeclaration propertyType = null;
-				boolean objectIsArrayType = false;
+			if (objectType.properties() != null) {
+				objectType.properties().forEach(property -> {
+					ObjectTypeDeclaration propertyType = null;
 
-				if (property instanceof ArrayTypeDeclaration) {
-					final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
-					propertyType = (ObjectTypeDeclaration) arrayType.items();
-					objectIsArrayType = true;
-				} else if (property instanceof ObjectTypeDeclaration) {
-					propertyType = (ObjectTypeDeclaration) property;
-				}
+					if (property instanceof ArrayTypeDeclaration) {
+						final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
+						propertyType = (ObjectTypeDeclaration) arrayType.items();
+					} else if (property instanceof ObjectTypeDeclaration) {
+						propertyType = (ObjectTypeDeclaration) property;
+					}
 
-				if (propertyType != null) {
-					recursivelyAddTypes(packageName, propertyType, objectIsArrayType);
-				}
-			});
+					if (propertyType != null) {
+						recursivelyAddTypes(packageName, propertyType, false);
+					}
+				});
+			}
 		}
 	}
 
@@ -54,18 +53,16 @@ public class GenerateTransport {
 				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
 
 		ObjectTypeDeclaration objectType = null;
-		boolean objectIsArrayType = false;
 
 		if (body instanceof ArrayTypeDeclaration) {
 			final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) body;
 			objectType = (ObjectTypeDeclaration) arrayType.items();
-			objectIsArrayType = true;
 		} else if (body instanceof ObjectTypeDeclaration) {
 			objectType = (ObjectTypeDeclaration) body;
 		}
 
 		if (objectType != null) {
-			recursivelyAddTypes(packageName, objectType, objectIsArrayType);
+			recursivelyAddTypes(packageName, objectType, true);
 		}
 	}
 
@@ -87,7 +84,8 @@ public class GenerateTransport {
 	private void generateTransport() {
 		transportTypes.forEach(transportType -> {
 			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(), null,
-					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"), false);
+					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"),
+					false);
 			generator.addImport("java.io.Serializable");
 
 			final StringBuffer blocks = new StringBuffer();

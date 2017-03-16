@@ -69,7 +69,7 @@ public class GenerateRestController {
 			return uriParameters.stream()
 					.map(uriParam -> "@PathVariable(name = \"" + uriParam.name() + "\", required = "
 							+ String.valueOf(uriParam.required()) + ") final "
-							+ generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
 							+ uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
@@ -86,7 +86,7 @@ public class GenerateRestController {
 							+ (queryParam.defaultValue() != null && queryParam.defaultValue().trim().length() > 0
 									? ", defaultValue = \"" + queryParam.defaultValue() + "\"" : "")
 							+ ") final "
-							+ generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
 							+ queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
@@ -100,7 +100,7 @@ public class GenerateRestController {
 			} else {
 				return "@RequestBody final "
 						+ generator.getJavaType(
-								(method.body().get(0).type().isEmpty() ? "string" : method.body().get(0).type()),
+								GeneratorUtil.getMemberType(method.body().get(0)),
 								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 						+ " " + GeneratorUtil.getRequestBodyVariableName(method);
 			}
@@ -167,14 +167,14 @@ public class GenerateRestController {
 
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
-							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			// Get the exceptions
 			method.responses().stream().filter(response -> !response.code().value().startsWith("2"))
 					.forEach(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
-						final String errorReturnType = generator.getJavaType(response.body().get(0).type(),
+						final String errorReturnType = generator.getJavaType(GeneratorUtil.getMemberType(response.body().get(0)),
 								CodeGenerator.ERROR_TRANSPORT_PACKAGE);
 
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);

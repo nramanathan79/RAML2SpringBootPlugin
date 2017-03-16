@@ -189,21 +189,8 @@ public class CodeGenerator {
 		final StringBuffer fields = new StringBuffer();
 
 		members.stream().sorted(byName).forEach(member -> {
-			String memberType = member.type();
-
-			if (!GeneratorUtil.isScalarRAMLType(memberType)
-					&& GeneratorUtil.isScalarRAMLType(member.parentTypes().get(0).type())) {
-				memberType = member.parentTypes().get(0).type();
-			}
-			
-			String memberName = member.name();
-			
-			if (memberName.endsWith("?")) {
-				memberName = memberName.substring(0, memberName.length() - 1);
-			}
-
-			fields.append(INDENT1).append("private ").append(getJavaType(memberType, transportPackageName)).append(" ")
-					.append(memberName).append(";").append(NEWLINE);
+			fields.append(INDENT1).append("private ").append(getJavaType(GeneratorUtil.getMemberType(member), transportPackageName)).append(" ")
+					.append(GeneratorUtil.getMemberName(member)).append(";").append(NEWLINE);
 		});
 
 		codeBlocks.add(fields.toString());
@@ -211,20 +198,8 @@ public class CodeGenerator {
 		members.stream().sorted(byName).forEach(member -> {
 			final StringBuffer methods = new StringBuffer();
 
-			String memberType = member.type();
-
-			if (!GeneratorUtil.isScalarRAMLType(memberType)
-					&& GeneratorUtil.isScalarRAMLType(member.parentTypes().get(0).type())) {
-				memberType = member.parentTypes().get(0).type();
-			}
-
-			String memberName = member.name();
-			
-			if (memberName.endsWith("?")) {
-				memberName = memberName.substring(0, memberName.length() - 1);
-			}
-
-			final String memberJavaType = getJavaType(memberType, transportPackageName);
+			final String memberName = GeneratorUtil.getMemberName(member);
+			final String memberJavaType = getJavaType(GeneratorUtil.getMemberType(member), transportPackageName);
 			final String functionName = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
 
 			methods.append(INDENT1).append("public ").append(memberJavaType).append(" get").append(functionName)

@@ -201,17 +201,28 @@ public class GeneratorUtil {
 
 		attributeConvertersCompleted.add(entityKeyClassName);
 	}
-	
+
 	public static boolean isScalarRAMLType(final String type) {
-		return ("string".equals(type) ||
-				"boolean".equals(type) ||
-				"number".equals(type) ||
-				"integer".equals(type) ||
-				"date-only".equals(type) ||
-				"time-only".equals(type) ||
-				"datetime-only".equals(type) ||
-				"datetime".equals(type) ||
-				"null".equals(type) ||
-				"file".equals(type));
+		return ("string".equals(type) || "boolean".equals(type) || "number".equals(type) || "integer".equals(type)
+				|| "date-only".equals(type) || "time-only".equals(type) || "datetime-only".equals(type)
+				|| "datetime".equals(type) || "null".equals(type) || "file".equals(type));
+	}
+
+	public static String getMemberName(final TypeDeclaration member) {
+		if (member.name().endsWith("?")) {
+			return member.name().substring(0, member.name().length() - 1);
+		} else {
+			return member.name();
+		}
+	}
+
+	public static String getMemberType(final TypeDeclaration member) {
+		if (member.type() == null || member.type().isEmpty()) {
+			return "string";
+		} else if (!isScalarRAMLType(member.type()) && isScalarRAMLType(member.parentTypes().get(0).type())) {
+			return member.parentTypes().get(0).type();
+		} else {
+			return member.type();
+		}
 	}
 }

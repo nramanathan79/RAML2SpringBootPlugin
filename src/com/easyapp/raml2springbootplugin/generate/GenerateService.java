@@ -22,9 +22,8 @@ public class GenerateService {
 			return "";
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> "final "
-							+ generator.getJavaType(uriParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
-							+ uriParam.name())
+					.map(uriParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
+							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -34,9 +33,8 @@ public class GenerateService {
 			return "";
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> "final "
-							+ generator.getJavaType(queryParam.type(), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " "
-							+ queryParam.name())
+					.map(queryParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
+							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) + " " + queryParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -55,8 +53,7 @@ public class GenerateService {
 					.add("final "
 							+ generator.getJavaType(
 									method.body().isEmpty() ? "string"
-											: (method.body().get(0).type().isEmpty() ? "string"
-													: method.body().get(0).type()),
+											: GeneratorUtil.getMemberType(method.body().get(0)),
 									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
 							+ " " + GeneratorUtil.getRequestBodyVariableName(method));
 		}
@@ -73,7 +70,7 @@ public class GenerateService {
 			final StringBuffer methods = new StringBuffer();
 			final String responseType = generator.getJavaType(
 					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
-							.map(response -> response.body().get(0).type()).findFirst().orElse("string"),
+							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE);
 
 			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
