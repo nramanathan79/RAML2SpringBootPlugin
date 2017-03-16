@@ -69,8 +69,9 @@ public class GenerateRestController {
 			return uriParameters.stream()
 					.map(uriParam -> "@PathVariable(name = \"" + uriParam.name() + "\", required = "
 							+ String.valueOf(uriParam.required()) + ") final "
-							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " "
-							+ uriParam.name())
+							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
+							+ " " + uriParam.name())
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -80,15 +81,20 @@ public class GenerateRestController {
 			return "";
 		} else {
 			generator.addImport("org.springframework.web.bind.annotation.RequestParam");
-			return method.queryParameters().stream()
-					.map(queryParam -> "@RequestParam(name = \"" + queryParam.name() + "\", required = "
+			return method.queryParameters().stream().map(queryParam -> {
+				final String queryParamType = generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
+						CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false);
+
+				if (queryParamType.equals("Pageable")) {
+					return "final Pageable " + queryParam.name();
+				} else {
+					return "@RequestParam(name = \"" + queryParam.name() + "\", required = "
 							+ String.valueOf(queryParam.required())
 							+ (queryParam.defaultValue() != null && queryParam.defaultValue().trim().length() > 0
 									? ", defaultValue = \"" + queryParam.defaultValue() + "\"" : "")
-							+ ") final "
-							+ generator.getJavaType(GeneratorUtil.getMemberType(queryParam), CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " "
-							+ queryParam.name())
-					.collect(Collectors.joining(", "));
+							+ ") final " + queryParamType + " " + queryParam.name();
+				}
+			}).collect(Collectors.joining(", "));
 		}
 	}
 
@@ -99,8 +105,7 @@ public class GenerateRestController {
 				return "@RequestBody final String requestBody";
 			} else {
 				return "@RequestBody final "
-						+ generator.getJavaType(
-								GeneratorUtil.getMemberType(method.body().get(0)),
+						+ generator.getJavaType(GeneratorUtil.getMemberType(method.body().get(0)),
 								CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
 						+ " " + GeneratorUtil.getRequestBodyVariableName(method);
 			}
@@ -166,16 +171,17 @@ public class GenerateRestController {
 			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
 			final boolean pageType = method.is().stream().anyMatch(trait -> trait.name().equals("Paginated"));
 
-			final String responseType = generator.getJavaType(
-					method.responses().stream().filter(response -> response.code().value().startsWith("2"))
-							.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
+			final String responseType = generator.getJavaType(method.responses().stream()
+					.filter(response -> response.code().value().startsWith("2"))
+					.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
 			// Get the exceptions
 			method.responses().stream().filter(response -> !response.code().value().startsWith("2"))
 					.forEach(response -> {
 						final String exceptionClassName = GeneratorUtil.getExceptionClassName(response.code().value());
-						final String errorReturnType = generator.getJavaType(GeneratorUtil.getMemberType(response.body().get(0)),
+						final String errorReturnType = generator.getJavaType(
+								GeneratorUtil.getMemberType(response.body().get(0)),
 								CodeGenerator.ERROR_TRANSPORT_PACKAGE, false);
 
 						exceptionMap.put(response.code().value(), exceptionClassName + "~" + errorReturnType);
