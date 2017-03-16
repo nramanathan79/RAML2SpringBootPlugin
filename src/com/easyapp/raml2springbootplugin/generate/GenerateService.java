@@ -107,7 +107,7 @@ public class GenerateService {
 
 				autowire.append(CodeGenerator.INDENT1).append("@Autowired").append(CodeGenerator.NEWLINE);
 				autowire.append(CodeGenerator.INDENT1).append("private ").append(repository).append(" ")
-						.append(GeneratorUtil.getCamelCase(table.getTableName(), "_")).append(";")
+						.append(GeneratorUtil.getCamelCase(table.getTableName(), "_")).append("Repository;")
 						.append(CodeGenerator.NEWLINE);
 
 				generator.addCodeBlock(autowire.toString());
