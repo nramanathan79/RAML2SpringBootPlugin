@@ -14,7 +14,7 @@
 			        {
 			            "relationshipType": "OneToMany",
 			            "referencedTableName": "city",
-			            "whereClause": "is_capital = 'true'"
+			            "whereClause": "is_capital is true"
 			        }
 			    ]
 			},
