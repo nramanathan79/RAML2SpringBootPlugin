@@ -45,12 +45,14 @@ public class TransportDefinition {
 			final TransportDefinition transport = transportTypes.stream()
 					.filter(transportType -> extendsFrom.equals(transportType.getClassName())).findFirst().orElse(null);
 
-			if (transport != null && transport.getObjectType().properties() != null && objectType.properties() != null) {
+			if (transport != null && transport.getObjectType().properties() != null
+					&& objectType.properties() != null) {
 				final List<TypeDeclaration> declaredProperties = new ArrayList<>();
 				declaredProperties.addAll(objectType.properties());
 
 				transport.getObjectType().properties().forEach(parentProperty -> {
-					declaredProperties.removeIf(property -> property.name().equals(parentProperty.name()));
+					declaredProperties.removeIf(property -> GeneratorUtil.getMemberName(property)
+							.equals(GeneratorUtil.getMemberName(parentProperty)));
 				});
 
 				return declaredProperties;

@@ -67,11 +67,11 @@ public class GenerateRestController {
 		} else {
 			generator.addImport("org.springframework.web.bind.annotation.PathVariable");
 			return uriParameters.stream()
-					.map(uriParam -> "@PathVariable(name = \"" + uriParam.name() + "\", required = "
-							+ String.valueOf(uriParam.required()) + ") final "
+					.map(uriParam -> "@PathVariable(name = \"" + GeneratorUtil.getMemberName(uriParam)
+							+ "\", required = " + String.valueOf(uriParam.required()) + ") final "
 							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
 									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
-							+ " " + uriParam.name())
+							+ " " + GeneratorUtil.getMemberName(uriParam))
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -86,13 +86,15 @@ public class GenerateRestController {
 						CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false);
 
 				if (queryParamType.equals("Pageable")) {
-					return "final Pageable " + queryParam.name();
+					return "final Pageable " + GeneratorUtil.getMemberName(queryParam);
 				} else {
-					return "@RequestParam(name = \"" + queryParam.name() + "\", required = "
+					final String queryParamName = GeneratorUtil.getMemberName(queryParam);
+
+					return "@RequestParam(name = \"" + queryParamName + "\", required = "
 							+ String.valueOf(queryParam.required())
 							+ (queryParam.defaultValue() != null && queryParam.defaultValue().trim().length() > 0
 									? ", defaultValue = \"" + queryParam.defaultValue() + "\"" : "")
-							+ ") final " + queryParamType + " " + queryParam.name();
+							+ ") final " + queryParamType + " " + queryParamName;
 				}
 			}).collect(Collectors.joining(", "));
 		}
@@ -139,7 +141,7 @@ public class GenerateRestController {
 		final List<String> variables = new ArrayList<>();
 
 		final String pathVariables = GeneratorUtil.getURIParameters(method.resource()).stream()
-				.map(uriParam -> uriParam.name()).collect(Collectors.joining(", "));
+				.map(GeneratorUtil::getMemberName).collect(Collectors.joining(", "));
 
 		if (!("").equals(pathVariables)) {
 			variables.add(pathVariables);
@@ -150,7 +152,7 @@ public class GenerateRestController {
 		}
 
 		if (!method.queryParameters().isEmpty()) {
-			variables.add(method.queryParameters().stream().map(queryParam -> queryParam.name())
+			variables.add(method.queryParameters().stream().map(GeneratorUtil::getMemberName)
 					.collect(Collectors.joining(", ")));
 		}
 

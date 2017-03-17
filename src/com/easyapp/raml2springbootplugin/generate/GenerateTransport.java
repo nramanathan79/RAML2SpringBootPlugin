@@ -21,8 +21,8 @@ public class GenerateTransport {
 
 	private void recursivelyAddTypes(final String packageName, final ObjectTypeDeclaration objectType,
 			final boolean topLevel) {
-		final String className = topLevel ? (objectType.name().contains("/") ? objectType.type() : objectType.name())
-				: ("object".equals(objectType.type()) ? objectType.name() : objectType.type());
+		final String className = topLevel ? (objectType.name().contains("/") ? objectType.type() : GeneratorUtil.getMemberName(objectType))
+				: ("object".equals(objectType.type()) ? GeneratorUtil.getMemberName(objectType) : objectType.type());
 
 		if (transportTypes.stream().noneMatch(transportType -> className.equals(transportType.getClassName()))) {
 			final String extendsFrom = className.equals(objectType.type()) ? null

@@ -23,7 +23,7 @@ public class GenerateService {
 		} else {
 			return uriParameters.stream()
 					.map(uriParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
-							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + uriParam.name())
+							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + GeneratorUtil.getMemberName(uriParam))
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -34,7 +34,7 @@ public class GenerateService {
 		} else {
 			return method.queryParameters().stream()
 					.map(queryParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
-							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + queryParam.name())
+							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + GeneratorUtil.getMemberName(queryParam))
 					.collect(Collectors.joining(", "));
 		}
 	}
