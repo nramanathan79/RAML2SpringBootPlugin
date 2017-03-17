@@ -57,9 +57,7 @@ public class GeneratorUtil {
 		String returnValue = "";
 
 		if (text != null) {
-			String[] words = text.trim().split(delimiter);
-
-			for (String word : words) {
+			for (final String word : text.trim().split(delimiter)) {
 				returnValue += Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase();
 			}
 		}

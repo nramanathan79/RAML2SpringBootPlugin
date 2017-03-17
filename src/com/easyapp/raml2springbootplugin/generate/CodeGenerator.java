@@ -95,14 +95,18 @@ public class CodeGenerator {
 		}
 	}
 
-	public String getJavaDataType(final JDBCType dataType, final String tableName) throws Exception {
+	public String getJavaDataType(final JDBCType dataType, final String tableName) {
 		String javaDataType = GeneratorUtil.getJavaDataType(dataType);
 
 		if (javaDataType.endsWith("Date") || javaDataType.endsWith("Time")) {
 			addImport("java.time." + javaDataType);
-			GeneratorUtil.createAttributeConverter(codeGenConfig.getSourceDirectory(),
-					codeGenConfig.getBasePackage() + ".repository", javaDataType,
-					codeGenConfig.getExternalConfig().overwriteFiles());
+			try {
+				GeneratorUtil.createAttributeConverter(codeGenConfig.getSourceDirectory(),
+						codeGenConfig.getBasePackage() + ".repository", javaDataType,
+						codeGenConfig.getExternalConfig().overwriteFiles());
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		} else if (javaDataType.equals("Unknown") && dataType == JDBCType.JAVA_OBJECT) {
 			javaDataType = GeneratorUtil.getTitleCase(tableName, "_") + "Id";
 			addImport(codeGenConfig.getBasePackage() + ".entity." + javaDataType);
@@ -237,7 +241,7 @@ public class CodeGenerator {
 		if (columns != null) {
 			addImport("javax.persistence.Column");
 
-			for (final ColumnDefinition column : columns) {
+			columns.forEach(column -> {
 				final String memberName = GeneratorUtil.getCamelCase(column.getColumnName(), "_");
 				final String memberType = getJavaDataType(column.getDataType(), table.getTableName());
 				final String memberTitleCase = GeneratorUtil.getTitleCase(column.getColumnName(), "_");
@@ -282,7 +286,7 @@ public class CodeGenerator {
 				methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
 						.append(NEWLINE);
 				methods.append(INDENT1).append("}").append(NEWLINE);
-			}
+			});
 		}
 
 		if (table.getRelationships() != null) {
