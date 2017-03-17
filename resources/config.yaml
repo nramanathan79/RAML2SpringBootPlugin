@@ -1,0 +1,20 @@
+generateTests: true
+overwriteFiles: true
+generateHealthCheck: true
+dockerConfig:
+  dockerHost: http://localhost:2375
+  dockerImageName: accounts:v1
+jpaConfig:
+  tables:
+  - tableName: country
+    relationships:
+    - relationshipType: OneToMany
+      referencedTableName: city
+      whereClause: is_capital is true
+  - tableName: city
+    relationships:
+    - relationshipType: ManyToOne
+      referencedTableName: country
+      joins:
+      - columnName: country_code
+        referencedColumnName: iso_alpha_2_code

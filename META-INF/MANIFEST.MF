@@ -57,4 +57,7 @@ Bundle-ClassPath: .,
  lib/uri-template-0.9.jar,
  lib/wagon-provider-api-1.0-beta-6.jar,
  lib/xmlschema-core-2.2.1.jar,
- lib/yagi-1.0.7.jar
+ lib/yagi-1.0.7.jar,
+ lib/jackson-core-2.8.7.jar,
+ lib/jackson-dataformat-yaml-2.8.7.jar,
+ lib/snakeyaml-1.17.jar

@@ -12,6 +12,7 @@ import java.util.Properties;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class CodeGenConfig {
 	private String ramlFilePath = null;
@@ -40,12 +41,17 @@ public class CodeGenConfig {
 		}
 	}
 
-	private void getExternalConfig(final String configFilePath) throws Exception {
+	private void getExternalConfigYaml(final String configFilePath) throws Exception {
+		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
+			final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+			externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
+		}
+	}
+
+	private void getExternalConfigJson(final String configFilePath) throws Exception {
 		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
 			final ObjectMapper mapper = new ObjectMapper();
 			externalConfig = mapper.readValue(new File(configFilePath), ExternalConfig.class);
-		} else {
-			externalConfig = new ExternalConfig();
 		}
 	}
 
@@ -65,7 +71,15 @@ public class CodeGenConfig {
 		this.pomFilePath = this.projectDirectory + "/pom.xml";
 		getBasePackage(this.sourceDirectory);
 		getApplicationProperties(this.projectDirectory + "/src/main/resources/application.properties");
-		getExternalConfig(this.projectDirectory + "/src/main/resources/config.json");
+		getExternalConfigYaml(this.projectDirectory + "/src/main/resources/config.yaml");
+
+		if (externalConfig == null) {
+			getExternalConfigJson(this.projectDirectory + "/src/main/resources/config.json");
+		}
+		
+		if (externalConfig == null) {
+			externalConfig = new ExternalConfig();
+		}
 	}
 
 	public String getConfigError() {
@@ -111,11 +125,6 @@ public class CodeGenConfig {
 
 		if (basePackage == null) {
 			return "Base Package for the Application is missing";
-		}
-
-		if (Files.exists(Paths.get(this.projectDirectory + "/src/main/resources/config.json"))
-				&& externalConfig == null) {
-			return "config.json file is invalid";
 		}
 
 		if (externalConfig.hasJpaConfig()) {
