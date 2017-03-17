@@ -1,9 +1,19 @@
 package com.easyapp.raml2springbootplugin.config;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class ExternalConfig {
 	private boolean generateTests = true;
@@ -71,6 +81,7 @@ public class ExternalConfig {
 			private String sequenceName = null;
 			private int sequenceIncrement = 1;
 			private List<Relationship> relationships = null;
+			private List<EntityMapping> entityMappings = null;
 
 			public static class Relationship {
 				private String relationshipType = null;
@@ -237,6 +248,42 @@ public class ExternalConfig {
 				}
 			}
 
+			public static class EntityMapping {
+				private String ramlType;
+				private Map<String, String> columnMappings = new HashMap<>();
+
+				public String getRamlType() {
+					return ramlType;
+				}
+
+				public void setRamlType(final String ramlType) {
+					this.ramlType = ramlType;
+				}
+
+				@JsonAnyGetter
+				public Map<String, String> getColumnMappings() {
+					return columnMappings;
+				}
+
+				@JsonAnySetter
+				public void setColumnMappings(final String key, final String value) {
+					this.columnMappings.put(key, value);
+				}
+
+				public String getConfigError(final String tableName) {
+					if (StringUtils.isEmpty(ramlType)) {
+						return "RAML Type missing in entity mapping for table = " + tableName + " in JPA Config";
+					}
+
+					if (columnMappings == null || columnMappings.isEmpty()) {
+						return "Mappings missing for entity with RAML Type = " + ramlType + " for table = " + tableName
+								+ " in JPA Config";
+					}
+
+					return null;
+				}
+			}
+
 			public Table() {
 
 			}
@@ -277,6 +324,14 @@ public class ExternalConfig {
 				this.relationships = relationships;
 			}
 
+			public List<EntityMapping> getEntityMappings() {
+				return entityMappings;
+			}
+
+			public void setEntityMappings(final List<EntityMapping> entityMappings) {
+				this.entityMappings = entityMappings;
+			}
+
 			public String getConfigError() {
 				if (StringUtils.isEmpty(tableName)) {
 					return "Table Name is missing in JPA Config";
@@ -284,6 +339,11 @@ public class ExternalConfig {
 
 				if (relationships != null && !relationships.isEmpty()) {
 					relationships.stream().map(relationship -> relationship.getConfigError(tableName))
+							.filter(configError -> configError != null).findAny().orElse(null);
+				}
+
+				if (entityMappings != null && !entityMappings.isEmpty()) {
+					entityMappings.stream().map(entityMapping -> entityMapping.getConfigError(tableName))
 							.filter(configError -> configError != null).findAny().orElse(null);
 				}
 
@@ -369,5 +429,16 @@ public class ExternalConfig {
 		}
 
 		return configError;
+	}
+
+	public static void main(final String[] args) throws Exception {
+		final String configFilePath = "resources/config.yaml";
+		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
+			final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+			ExternalConfig externalConfig = yamlMapper.readValue(new File(configFilePath), ExternalConfig.class);
+
+			final ObjectMapper jsonMapper = new ObjectMapper();
+			System.out.println(jsonMapper.writeValueAsString(externalConfig));
+		}
 	}
 }

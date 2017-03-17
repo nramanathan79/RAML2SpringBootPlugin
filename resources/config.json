@@ -1,35 +1,167 @@
 {
-	"generateTests": true,
-	"overwriteFiles": true,
-	"generateHealthCheck": true,
-	"dockerConfig": {
-	    "dockerHost": "http://localhost:2375",
-	    "dockerImageName": "accounts:v1"
-	},
-	"jpaConfig": {
-		"tables": [
-			{
-			    "tableName": "country",
-			    "relationships": [
-			        {
-			            "relationshipType": "OneToMany",
-			            "referencedTableName": "city",
-			            "whereClause": "is_capital is true"
-			        }
-			    ]
-			},
-			{
-			    "tableName": "city",
-			    "relationships": [
-			        {
-			            "relationshipType": "ManyToOne",
-			            "referencedTableName": "country",
-				        "joins": [
-				            {"columnName": "country_code", "referencedColumnName": "iso_alpha_2_code"}
-				        ]
-			        }
-			    ]
-			}
-		]
-	}
+  "generateTests": true,
+  "overwriteFiles": true,
+  "generateHealthCheck": true,
+  "dockerConfig": {
+    "dockerHost": "http://localhost:2375",
+    "dockerImageName": "accounts:v1"
+  },
+  "jpaConfig": {
+    "tables": [
+      {
+        "tableName": "country",
+        "relationships": [
+          {
+            "relationshipType": "OneToMany",
+            "referencedTableName": "city",
+            "whereClause": "is_capital is true"
+          }
+        ],
+        "entityMappings": [
+          {
+            "ramlType": "Country",
+            "columnMappings": [
+              {
+                "iso_alpha_2_code": "isoAlpha2Code"
+              },
+              {
+                "iso_alpha_3_code": "isoAlpha3Code"
+              },
+              {
+                "iso_numeric_code": "isoNumericCode"
+              },
+              {
+                "country_name": "countryName"
+              },
+              {
+                "continent": "continent"
+              },
+              {
+                "calling_code": "callingCode"
+              },
+              {
+                "currency_code": "currencyCode"
+              },
+              {
+                "population": "population"
+              }
+            ]
+          },
+          {
+            "ramlType": "CountryCapital",
+            "columnMappings": [
+              {
+                "iso_alpha_2_code": "isoAlpha2Code"
+              },
+              {
+                "iso_alpha_3_code": "isoAlpha3Code"
+              },
+              {
+                "iso_numeric_code": "isoNumericCode"
+              },
+              {
+                "country_name": "countryName"
+              },
+              {
+                "continent": "continent"
+              },
+              {
+                "calling_code": "callingCode"
+              },
+              {
+                "currency_code": "currencyCode"
+              },
+              {
+                "population": "population"
+              },
+              {
+                "city": "capital"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "city",
+        "relationships": [
+          {
+            "relationshipType": "ManyToOne",
+            "referencedTableName": "country",
+            "joins": [
+              {
+                "columnName": "country_code",
+                "referencedColumnName": "iso_alpha_2_code"
+              }
+            ]
+          }
+        ],
+        "entityMappings": [
+          {
+            "ramlType": "City",
+            "columnMappings": [
+              {
+                "city_id": "cityId"
+              },
+              {
+                "city_name": "cityName"
+              },
+              {
+                "countryCode": "country_code"
+              },
+              {
+                "is_capital": "isCapital"
+              },
+              {
+                "latitude": "latitude"
+              },
+              {
+                "longitude": "longitude"
+              },
+              {
+                "population": "population"
+              }
+            ]
+          },
+          {
+            "ramlType": "CityCountry",
+            "columnMappings": [
+              {
+                "city_id": "cityId"
+              },
+              {
+                "city_name": "cityName"
+              },
+              {
+                "countryCode": "country_code"
+              },
+              {
+                "is_capital": "isCapital"
+              },
+              {
+                "latitude": "latitude"
+              },
+              {
+                "longitude": "longitude"
+              },
+              {
+                "population": "population"
+              },
+              {
+                "country.country_name": "countryName"
+              },
+              {
+                "country.continent": "continent"
+              },
+              {
+                "country.calling_code": "countryCallingCode"
+              },
+              {
+                "country.currency_code": "currencyCode"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }
