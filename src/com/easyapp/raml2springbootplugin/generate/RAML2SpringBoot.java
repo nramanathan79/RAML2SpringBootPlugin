@@ -11,9 +11,9 @@ import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 
 public class RAML2SpringBoot {
-	public static void generate(final CodeGenConfig codeGenConfig)
-			throws Exception {
-		final RamlModelResult ramlModelResult = new RamlModelBuilder().buildApi(Paths.get(codeGenConfig.getRamlFilePath()).toFile());
+	public static void generate(final CodeGenConfig codeGenConfig) throws Exception {
+		final RamlModelResult ramlModelResult = new RamlModelBuilder()
+				.buildApi(Paths.get(codeGenConfig.getRamlFilePath()).toFile());
 
 		if (ramlModelResult.hasErrors()) {
 			throw new Exception(ramlModelResult.getValidationResults().stream().map(result -> result.getMessage())
@@ -23,10 +23,15 @@ public class RAML2SpringBoot {
 		final Api api = ramlModelResult.getApiV10();
 
 		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
-		
+
 		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
 			GenerateJPA jpa = new GenerateJPA(codeGenConfig);
 			jpa.create();
+		}
+
+		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
+			GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-actuator",
+					null);
 		}
 
 		GenerateExceptions exceptions = new GenerateExceptions(api, codeGenConfig);
@@ -40,12 +45,12 @@ public class RAML2SpringBoot {
 
 		GenerateRestController restController = new GenerateRestController(api, codeGenConfig);
 		restController.create();
-		
+
 		if (codeGenConfig.getExternalConfig().generateTests()) {
 			GenerateTests tests = new GenerateTests(api, codeGenConfig);
 			tests.create();
 		}
-		
+
 		if (codeGenConfig.getExternalConfig().dockerize()) {
 			GenerateDocker docker = new GenerateDocker(codeGenConfig);
 			docker.create();

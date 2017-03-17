@@ -138,25 +138,6 @@ public class GenerateTests {
 		methods.append(CodeGenerator.INDENT2).append("// TODO: Additional Setup").append(CodeGenerator.NEWLINE);
 		methods.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
 		generator.addImport("org.junit.Before");
-
-		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
-			members.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1)
-					.append("private final String healthCheckEndPoint = \"/healthCheck\";");
-
-			methods.append(CodeGenerator.INDENT1).append("@Test").append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT1).append("public void testHealthCheck() {")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2)
-					.append("final ResponseEntity<String> response = restTemplate.getForEntity(baseURI + healthCheckEndPoint, String.class);")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT2).append("assertThat(response.getStatusCode().value(), equalTo(200));")
-					.append(CodeGenerator.NEWLINE);
-			methods.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
-			generator.addImport("org.junit.Test");
-			generator.addImport("org.springframework.http.ResponseEntity");
-			generator.addImport("static org.junit.Assert.assertThat");
-			generator.addImport("static org.hamcrest.CoreMatchers.equalTo");
-		}
 	}
 
 	private void createResourceMethods(final Resource resource) {
