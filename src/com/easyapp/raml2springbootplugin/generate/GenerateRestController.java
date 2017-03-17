@@ -80,7 +80,6 @@ public class GenerateRestController {
 		if (method.queryParameters().isEmpty()) {
 			return "";
 		} else {
-			generator.addImport("org.springframework.web.bind.annotation.RequestParam");
 			return method.queryParameters().stream().map(queryParam -> {
 				final String queryParamType = generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
 						CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false);
@@ -88,6 +87,8 @@ public class GenerateRestController {
 				if (queryParamType.equals("Pageable")) {
 					return "final Pageable " + GeneratorUtil.getMemberName(queryParam);
 				} else {
+					generator.addImport("org.springframework.web.bind.annotation.RequestParam");
+
 					final String queryParamName = GeneratorUtil.getMemberName(queryParam);
 
 					return "@RequestParam(name = \"" + queryParamName + "\", required = "
