@@ -1,9 +1,11 @@
 generateTests: true
 overwriteFiles: true
 generateHealthCheck: true
+
 dockerConfig:
   dockerHost: http://localhost:2375
   dockerImageName: accounts:v1
+
 jpaConfig:
   tables:
   - tableName: country
