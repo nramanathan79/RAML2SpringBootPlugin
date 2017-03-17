@@ -6,6 +6,8 @@ import java.util.List;
 import org.raml.v2.api.model.v10.datamodel.ObjectTypeDeclaration;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 
+import com.easyapp.raml2springbootplugin.generate.CodeGenerator;
+
 public class TransportDefinition {
 	private String packageName;
 	private String className;
@@ -15,8 +17,10 @@ public class TransportDefinition {
 	public TransportDefinition(final String packageName, final String className, final String extendsFrom,
 			final ObjectTypeDeclaration objectType) {
 		this.packageName = packageName;
-		this.className = className;
-		this.extendsFrom = extendsFrom;
+		this.className = packageName.equals(CodeGenerator.DEFAULT_TRANSPORT_PACKAGE) ? className + "Transport"
+				: className;
+		this.extendsFrom = extendsFrom != null && packageName.equals(CodeGenerator.DEFAULT_TRANSPORT_PACKAGE)
+				? extendsFrom + "Transport" : extendsFrom;
 		this.objectType = objectType;
 	}
 

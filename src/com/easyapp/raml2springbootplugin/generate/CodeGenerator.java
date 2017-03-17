@@ -75,8 +75,14 @@ public class CodeGenerator {
 
 				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
 			} else {
-				addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType);
-				return strippedFieldType;
+				if (transportPackageName.equals(DEFAULT_TRANSPORT_PACKAGE)) {
+					addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType
+							+ "Transport");
+					return strippedFieldType + "Transport";
+				} else {
+					addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType);
+					return strippedFieldType;
+				}
 			}
 		}
 	}
