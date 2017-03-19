@@ -1,8 +1,5 @@
 package com.easyapp.raml2springbootplugin.config;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +9,6 @@ import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class ExternalConfig {
 	private boolean generateTests = true;
@@ -273,7 +268,7 @@ public class ExternalConfig {
 				public void setRamlType(final String ramlType) {
 					this.ramlType = ramlType;
 				}
-				
+
 				public ColumnMappings getColumnMappings() {
 					return columnMappings;
 				}
