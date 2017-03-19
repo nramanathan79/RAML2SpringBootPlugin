@@ -250,7 +250,21 @@ public class ExternalConfig {
 
 			public static class EntityMapping {
 				private String ramlType;
-				private Map<String, String> columnMappings = new HashMap<>();
+				private ColumnMappings columnMappings;
+
+				public static class ColumnMappings {
+					private Map<String, String> columnMappings = new HashMap<>();
+
+					@JsonAnyGetter
+					public Map<String, String> getColumnMappings() {
+						return columnMappings;
+					}
+
+					@JsonAnySetter
+					public void setColumnMappings(final String key, final String value) {
+						this.columnMappings.put(key, value);
+					}
+				}
 
 				public String getRamlType() {
 					return ramlType;
@@ -259,15 +273,13 @@ public class ExternalConfig {
 				public void setRamlType(final String ramlType) {
 					this.ramlType = ramlType;
 				}
-
-				@JsonAnyGetter
-				public Map<String, String> getColumnMappings() {
+				
+				public ColumnMappings getColumnMappings() {
 					return columnMappings;
 				}
 
-				@JsonAnySetter
-				public void setColumnMappings(final String key, final String value) {
-					this.columnMappings.put(key, value);
+				public void setColumnMappings(final ColumnMappings columnMappings) {
+					this.columnMappings = columnMappings;
 				}
 
 				public String getConfigError(final String tableName) {
@@ -275,7 +287,8 @@ public class ExternalConfig {
 						return "RAML Type missing in entity mapping for table = " + tableName + " in JPA Config";
 					}
 
-					if (columnMappings == null || columnMappings.isEmpty()) {
+					if (columnMappings == null || columnMappings.getColumnMappings() == null
+							|| columnMappings.getColumnMappings().isEmpty()) {
 						return "Mappings missing for entity with RAML Type = " + ramlType + " for table = " + tableName
 								+ " in JPA Config";
 					}
@@ -429,16 +442,5 @@ public class ExternalConfig {
 		}
 
 		return configError;
-	}
-
-	public static void main(final String[] args) throws Exception {
-		final String configFilePath = "resources/config.yaml";
-		if (Files.exists(Paths.get(configFilePath)) && Files.isReadable(Paths.get(configFilePath))) {
-			final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-			ExternalConfig externalConfig = yamlMapper.readValue(new File(configFilePath), ExternalConfig.class);
-
-			final ObjectMapper jsonMapper = new ObjectMapper();
-			System.out.println(jsonMapper.writeValueAsString(externalConfig));
-		}
 	}
 }

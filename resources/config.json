@@ -20,64 +20,30 @@
         "entityMappings": [
           {
             "ramlType": "Country",
-            "columnMappings": [
-              {
-                "iso_alpha_2_code": "isoAlpha2Code"
-              },
-              {
-                "iso_alpha_3_code": "isoAlpha3Code"
-              },
-              {
-                "iso_numeric_code": "isoNumericCode"
-              },
-              {
-                "country_name": "countryName"
-              },
-              {
-                "continent": "continent"
-              },
-              {
-                "calling_code": "callingCode"
-              },
-              {
-                "currency_code": "currencyCode"
-              },
-              {
-                "population": "population"
-              }
-            ]
+            "columnMappings": {
+              "iso_alpha_2_code": "isoAlpha2Code",
+              "iso_alpha_3_code": "isoAlpha3Code",
+              "iso_numeric_code": "isoNumericCode",
+              "country_name": "countryName",
+              "continent": "continent",
+              "calling_code": "callingCode",
+              "currency_code": "currencyCode",
+              "population": "population"
+            }
           },
           {
             "ramlType": "CountryCapital",
-            "columnMappings": [
-              {
-                "iso_alpha_2_code": "isoAlpha2Code"
-              },
-              {
-                "iso_alpha_3_code": "isoAlpha3Code"
-              },
-              {
-                "iso_numeric_code": "isoNumericCode"
-              },
-              {
-                "country_name": "countryName"
-              },
-              {
-                "continent": "continent"
-              },
-              {
-                "calling_code": "callingCode"
-              },
-              {
-                "currency_code": "currencyCode"
-              },
-              {
-                "population": "population"
-              },
-              {
-                "city": "capital"
-              }
-            ]
+            "columnMappings": {
+              "iso_alpha_2_code": "isoAlpha2Code",
+              "iso_alpha_3_code": "isoAlpha3Code",
+              "iso_numeric_code": "isoNumericCode",
+              "country_name": "countryName",
+              "continent": "continent",
+              "calling_code": "callingCode",
+              "currency_code": "currencyCode",
+              "population": "population",
+              "city": "capital"
+            }
           }
         ]
       },
@@ -98,67 +64,31 @@
         "entityMappings": [
           {
             "ramlType": "City",
-            "columnMappings": [
-              {
-                "city_id": "cityId"
-              },
-              {
-                "city_name": "cityName"
-              },
-              {
-                "countryCode": "country_code"
-              },
-              {
-                "is_capital": "isCapital"
-              },
-              {
-                "latitude": "latitude"
-              },
-              {
-                "longitude": "longitude"
-              },
-              {
-                "population": "population"
-              }
-            ]
+            "columnMappings": {
+              "city_id": "cityId",
+              "city_name": "cityName",
+              "countryCode": "country_code",
+              "is_capital": "isCapital",
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "population": "population"
+            }
           },
           {
             "ramlType": "CityCountry",
-            "columnMappings": [
-              {
-                "city_id": "cityId"
-              },
-              {
-                "city_name": "cityName"
-              },
-              {
-                "countryCode": "country_code"
-              },
-              {
-                "is_capital": "isCapital"
-              },
-              {
-                "latitude": "latitude"
-              },
-              {
-                "longitude": "longitude"
-              },
-              {
-                "population": "population"
-              },
-              {
-                "country.country_name": "countryName"
-              },
-              {
-                "country.continent": "continent"
-              },
-              {
-                "country.calling_code": "countryCallingCode"
-              },
-              {
-                "country.currency_code": "currencyCode"
-              }
-            ]
+            "columnMappings": {
+              "city_id": "cityId",
+              "city_name": "cityName",
+              "countryCode": "country_code",
+              "is_capital": "isCapital",
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "population": "population",
+              "country.country_name": "countryName",
+              "country.continent": "continent",
+              "country.calling_code": "countryCallingCode",
+              "country.currency_code": "currencyCode"
+            }
           }
         ]
       }
