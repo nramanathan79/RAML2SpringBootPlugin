@@ -251,12 +251,12 @@ public class ExternalConfig {
 					private Map<String, String> columnMappings = new HashMap<>();
 
 					@JsonAnyGetter
-					public Map<String, String> getColumnMappings() {
+					public Map<String, String> get() {
 						return columnMappings;
 					}
 
 					@JsonAnySetter
-					public void setColumnMappings(final String key, final String value) {
+					public void setColumnMapping(final String key, final String value) {
 						this.columnMappings.put(key, value);
 					}
 				}
@@ -277,15 +277,22 @@ public class ExternalConfig {
 					this.columnMappings = columnMappings;
 				}
 
-				public String getConfigError(final String tableName) {
+				public String getConfigError(final String tableName, final List<Relationship> relationships) {
 					if (StringUtils.isEmpty(ramlType)) {
 						return "RAML Type missing in entity mapping for table = " + tableName + " in JPA Config";
 					}
 
-					if (columnMappings == null || columnMappings.getColumnMappings() == null
-							|| columnMappings.getColumnMappings().isEmpty()) {
+					if (columnMappings == null || columnMappings.get().isEmpty()) {
 						return "Mappings missing for entity with RAML Type = " + ramlType + " for table = " + tableName
 								+ " in JPA Config";
+					}
+
+					if (!columnMappings.get().keySet().stream().filter(column -> column.contains("."))
+							.map(referenceColumn -> referenceColumn.substring(0, referenceColumn.indexOf('.')))
+							.allMatch(referenceTable -> relationships != null && relationships.stream().anyMatch(
+									relationship -> relationship.getReferencedTableName().equals(referenceTable)))) {
+						return "Column Mapping contains reference table for which relationship is not defined for table "
+								+ tableName + " in JPA Config";
 					}
 
 					return null;
@@ -351,7 +358,8 @@ public class ExternalConfig {
 				}
 
 				if (entityMappings != null && !entityMappings.isEmpty()) {
-					entityMappings.stream().map(entityMapping -> entityMapping.getConfigError(tableName))
+					return entityMappings.stream()
+							.map(entityMapping -> entityMapping.getConfigError(tableName, relationships))
 							.filter(configError -> configError != null).findAny().orElse(null);
 				}
 
