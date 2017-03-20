@@ -5,9 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.raml.v2.api.model.v10.api.Api;
-import org.raml.v2.api.model.v10.datamodel.ArrayTypeDeclaration;
-import org.raml.v2.api.model.v10.datamodel.ObjectTypeDeclaration;
-import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.resources.Resource;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
@@ -19,62 +16,15 @@ public class GenerateTransport {
 	final CodeGenConfig codeGenConfig;
 	final List<TransportDefinition> transportTypes = new ArrayList<>();
 
-	private void recursivelyAddTypes(final String packageName, final ObjectTypeDeclaration objectType,
-			final boolean topLevel) {
-		final String className = topLevel ? (objectType.name().contains("/") ? objectType.type() : GeneratorUtil.getMemberName(objectType))
-				: ("object".equals(objectType.type()) ? GeneratorUtil.getMemberName(objectType) : objectType.type());
-
-		if (transportTypes.stream().noneMatch(transportType -> className.equals(transportType.getClassName()))) {
-			final String extendsFrom = className.equals(objectType.type()) ? null
-					: ("object".equals(objectType.type()) ? null : objectType.type());
-			transportTypes.add(new TransportDefinition(packageName, className, extendsFrom, objectType));
-
-			if (objectType.properties() != null) {
-				objectType.properties().forEach(property -> {
-					ObjectTypeDeclaration propertyType = null;
-
-					if (property instanceof ArrayTypeDeclaration) {
-						final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
-						propertyType = (ObjectTypeDeclaration) arrayType.items();
-					} else if (property instanceof ObjectTypeDeclaration) {
-						propertyType = (ObjectTypeDeclaration) property;
-					}
-
-					if (propertyType != null) {
-						recursivelyAddTypes(packageName, propertyType, false);
-					}
-				});
-			}
-		}
-	}
-
-	private void addToMap(final TypeDeclaration body, final String responseCode) {
-		final String packageName = responseCode == null || responseCode.startsWith("2")
-				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
-
-		ObjectTypeDeclaration objectType = null;
-
-		if (body instanceof ArrayTypeDeclaration) {
-			final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) body;
-			objectType = (ObjectTypeDeclaration) arrayType.items();
-		} else if (body instanceof ObjectTypeDeclaration) {
-			objectType = (ObjectTypeDeclaration) body;
-		}
-
-		if (objectType != null) {
-			recursivelyAddTypes(packageName, objectType, true);
-		}
-	}
-
 	private void getTransportTypes(final Resource resource) {
 		resource.methods().stream().forEach(method -> {
 			method.body().stream().filter(body -> !body.type().contains("-"))
-					.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type())).forEach(body -> addToMap(body, null));
+					.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type())).forEach(body -> GeneratorUtil.addToMap(transportTypes, body, null));
 
 			method.responses().stream().forEach(response -> {
 				response.body().stream().filter(body -> !body.type().contains("-"))
 						.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type()))
-						.forEach(body -> addToMap(body, response.code().value()));
+						.forEach(body -> GeneratorUtil.addToMap(transportTypes, body, response.code().value()));
 			});
 		});
 

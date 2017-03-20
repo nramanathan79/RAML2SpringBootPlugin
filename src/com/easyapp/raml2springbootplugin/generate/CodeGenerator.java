@@ -41,50 +41,34 @@ public class CodeGenerator {
 	private final List<String> codeBlocks = new ArrayList<>();
 
 	private String getJavaPrimitiveType(final String strippedFieldType, final String transportPackageName) {
-		if ("string".equals(strippedFieldType) || "any".equals(strippedFieldType)) {
-			return "String";
-		} else if ("number".equals(strippedFieldType)) {
-			return "Double";
-		} else if ("integer".equals(strippedFieldType)) {
-			return "Long";
-		} else if ("date-only".equals(strippedFieldType)) {
-			addImport("java.time.LocalDate");
-			return "LocalDate";
-		} else if ("time-only".equals(strippedFieldType)) {
-			addImport("java.time.LocalTime");
-			return "LocalTime";
-		} else if ("datetime-only".equals(strippedFieldType) || "datetime".equals(strippedFieldType)) {
-			addImport("java.time.LocalDateTime");
-			return "LocalDateTime";
-		} else if ("boolean".equals(strippedFieldType)) {
-			return "Boolean";
-		} else if ("null".equals(strippedFieldType)) {
-			return "void";
-		} else {
-			if (strippedFieldType.contains("-")) {
-				addImport(strippedFieldType.replaceAll("-", "."));
+		String javaDataType = GeneratorUtil.getJavaPrimitiveType(strippedFieldType);
 
-				if (strippedFieldType.contains("Page")) {
-					try {
-						GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot",
-								"spring-boot-starter-data-jpa", null);
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
-				}
+		if (javaDataType.endsWith("Date") || javaDataType.endsWith("Time")) {
+			addImport("java.time." + javaDataType);
+		}
 
-				return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
-			} else {
-				if (transportPackageName.equals(DEFAULT_TRANSPORT_PACKAGE)) {
-					addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType
-							+ "Transport");
-					return strippedFieldType + "Transport";
-				} else {
-					addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + strippedFieldType);
-					return strippedFieldType;
+		if (strippedFieldType.contains("-")) {
+			addImport(strippedFieldType.replaceAll("-", "."));
+
+			if (strippedFieldType.contains("Page")) {
+				try {
+					GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot",
+							"spring-boot-starter-data-jpa", null);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			}
 		}
+
+		if (strippedFieldType.equals(javaDataType)) {
+			if (transportPackageName.equals(DEFAULT_TRANSPORT_PACKAGE)) {
+				javaDataType += "Transport";
+			}
+
+			addImport(codeGenConfig.getBasePackage() + "." + transportPackageName + "." + javaDataType);
+		}
+
+		return javaDataType;
 	}
 
 	public String getJavaType(final String fieldType, final String transportPackageName, final boolean pageType) {

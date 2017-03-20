@@ -263,17 +263,29 @@ public class GenerateRestController {
 		});
 
 		final StringBuffer genericExceptionBlock = new StringBuffer();
+		final String internalServerErrorResponse = exceptionMap.entrySet().stream()
+				.filter(exception -> "500".equals(exception.getKey()))
+				.map(exception -> exception.getValue().split("~")[1]).findAny().orElse(exceptionMap.entrySet().stream()
+						.map(exception -> exception.getValue().split("~")[1]).findFirst().orElse("String"));
+
 		genericExceptionBlock.append(CodeGenerator.INDENT1).append("@ExceptionHandler(Exception.class)")
 				.append(CodeGenerator.NEWLINE);
 		generator.addImport("org.springframework.web.bind.annotation.ExceptionHandler");
 
-		genericExceptionBlock.append(CodeGenerator.INDENT1)
-				.append("public ResponseEntity<Error> whenException(final Exception exception) {")
+		genericExceptionBlock.append(CodeGenerator.INDENT1).append("public ResponseEntity<")
+				.append(internalServerErrorResponse).append("> whenException(final Exception exception) {")
 				.append(CodeGenerator.NEWLINE);
 		generator.addImport("org.springframework.http.ResponseEntity");
 
+		genericExceptionBlock.append(CodeGenerator.INDENT2).append("final ").append(internalServerErrorResponse)
+				.append(" errorResponse = new ").append(internalServerErrorResponse).append("();")
+				.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
+
+		genericExceptionBlock.append(CodeGenerator.INDENT2).append("// TODO: Set Error Response.")
+				.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
+
 		genericExceptionBlock.append(CodeGenerator.INDENT2)
-				.append("return new ResponseEntity<>(new Error(exception), HttpStatus.INTERNAL_SERVER_ERROR);")
+				.append("return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);")
 				.append(CodeGenerator.NEWLINE);
 		generator.addImport("org.springframework.http.HttpStatus");
 

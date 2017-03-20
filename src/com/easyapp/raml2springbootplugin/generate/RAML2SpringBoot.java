@@ -24,14 +24,14 @@ public class RAML2SpringBoot {
 
 		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
 
-		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
-			GenerateJPA jpa = new GenerateJPA(codeGenConfig);
-			jpa.create();
-		}
-
 		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
 			GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-actuator",
 					null);
+		}
+
+		if (codeGenConfig.getExternalConfig().dockerize()) {
+			GenerateDocker docker = new GenerateDocker(codeGenConfig);
+			docker.create();
 		}
 
 		GenerateExceptions exceptions = new GenerateExceptions(api, codeGenConfig);
@@ -39,6 +39,11 @@ public class RAML2SpringBoot {
 
 		GenerateTransport transport = new GenerateTransport(api, codeGenConfig);
 		transport.create();
+
+		if (codeGenConfig.getExternalConfig().hasJpaConfig()) {
+			GenerateJPA jpa = new GenerateJPA(api, codeGenConfig);
+			jpa.create();
+		}
 
 		GenerateService service = new GenerateService(api, codeGenConfig);
 		service.create();
@@ -49,11 +54,6 @@ public class RAML2SpringBoot {
 		if (codeGenConfig.getExternalConfig().generateTests()) {
 			GenerateTests tests = new GenerateTests(api, codeGenConfig);
 			tests.create();
-		}
-
-		if (codeGenConfig.getExternalConfig().dockerize()) {
-			GenerateDocker docker = new GenerateDocker(codeGenConfig);
-			docker.create();
 		}
 	}
 }

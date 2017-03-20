@@ -18,6 +18,8 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.raml.v2.api.model.v10.datamodel.ArrayTypeDeclaration;
+import org.raml.v2.api.model.v10.datamodel.ObjectTypeDeclaration;
 import org.raml.v2.api.model.v10.datamodel.TypeDeclaration;
 import org.raml.v2.api.model.v10.methods.Method;
 import org.raml.v2.api.model.v10.resources.Resource;
@@ -134,6 +136,32 @@ public class GeneratorUtil {
 		return getTitleCase(getHttpStatus(httpCode).name(), "_") + "Exception";
 	}
 
+	public static String getJavaPrimitiveType(final String strippedFieldType) {
+		if ("string".equals(strippedFieldType) || "any".equals(strippedFieldType)) {
+			return "String";
+		} else if ("number".equals(strippedFieldType)) {
+			return "Double";
+		} else if ("integer".equals(strippedFieldType)) {
+			return "Long";
+		} else if ("date-only".equals(strippedFieldType)) {
+			return "LocalDate";
+		} else if ("time-only".equals(strippedFieldType)) {
+			return "LocalTime";
+		} else if ("datetime-only".equals(strippedFieldType)) {
+			return "LocalDateTime";
+		} else if ("datetime".equals(strippedFieldType)) {
+			return "OffsetDateTime";
+		} else if ("boolean".equals(strippedFieldType)) {
+			return "Boolean";
+		} else if ("null".equals(strippedFieldType)) {
+			return "void";
+		} else if (strippedFieldType.contains("-")) {
+			return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
+		} else {
+			return strippedFieldType;
+		}
+	}
+
 	public static String getJavaDataType(final JDBCType dataType) {
 		if (dataType == JDBCType.CHAR || dataType == JDBCType.VARCHAR || dataType == JDBCType.NCHAR
 				|| dataType == JDBCType.NVARCHAR || dataType == JDBCType.LONGVARCHAR
@@ -221,6 +249,55 @@ public class GeneratorUtil {
 			return member.parentTypes().get(0).type();
 		} else {
 			return member.type();
+		}
+	}
+
+	private static void recursivelyAddTypes(final List<TransportDefinition> transportTypes, final String packageName,
+			final ObjectTypeDeclaration objectType, final boolean topLevel) {
+		final String className = topLevel
+				? (objectType.name().contains("/") ? objectType.type() : GeneratorUtil.getMemberName(objectType))
+				: ("object".equals(objectType.type()) ? GeneratorUtil.getMemberName(objectType) : objectType.type());
+
+		if (transportTypes.stream().noneMatch(transportType -> className.equals(transportType.getClassName()))) {
+			final String extendsFrom = className.equals(objectType.type()) ? null
+					: ("object".equals(objectType.type()) ? null : objectType.type());
+			transportTypes.add(new TransportDefinition(packageName, className, extendsFrom, objectType));
+
+			if (objectType.properties() != null) {
+				objectType.properties().forEach(property -> {
+					ObjectTypeDeclaration propertyType = null;
+
+					if (property instanceof ArrayTypeDeclaration) {
+						final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) property;
+						propertyType = (ObjectTypeDeclaration) arrayType.items();
+					} else if (property instanceof ObjectTypeDeclaration) {
+						propertyType = (ObjectTypeDeclaration) property;
+					}
+
+					if (propertyType != null) {
+						recursivelyAddTypes(transportTypes, packageName, propertyType, false);
+					}
+				});
+			}
+		}
+	}
+
+	public static void addToMap(final List<TransportDefinition> transportTypes, final TypeDeclaration body,
+			final String responseCode) {
+		final String packageName = responseCode == null || responseCode.startsWith("2")
+				? CodeGenerator.DEFAULT_TRANSPORT_PACKAGE : CodeGenerator.ERROR_TRANSPORT_PACKAGE;
+
+		ObjectTypeDeclaration objectType = null;
+
+		if (body instanceof ArrayTypeDeclaration) {
+			final ArrayTypeDeclaration arrayType = (ArrayTypeDeclaration) body;
+			objectType = (ObjectTypeDeclaration) arrayType.items();
+		} else if (body instanceof ObjectTypeDeclaration) {
+			objectType = (ObjectTypeDeclaration) body;
+		}
+
+		if (objectType != null) {
+			recursivelyAddTypes(transportTypes, packageName, objectType, true);
 		}
 	}
 }

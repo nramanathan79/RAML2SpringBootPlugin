@@ -35,7 +35,7 @@ jpaConfig:
         calling_code: callingCode
         currency_code: currencyCode
         population: population
-        city: capital
+        city.ARRAY_FIRST_ITEM: capital
   - tableName: city
     relationships:
     - relationshipType: ManyToOne

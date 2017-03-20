@@ -43,7 +43,7 @@
               "calling_code": "callingCode",
               "currency_code": "currencyCode",
               "population": "population",
-              "city": "capital"
+              "city.ARRAY_FIRST_ITEM": "capital"
             }
           }
         ]

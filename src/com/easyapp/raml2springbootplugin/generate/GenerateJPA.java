@@ -1,8 +1,12 @@
 package com.easyapp.raml2springbootplugin.generate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.raml.v2.api.model.v10.api.Api;
+import org.raml.v2.api.model.v10.resources.Resource;
 
 import com.easyapp.raml2springbootplugin.config.CodeGenConfig;
 import com.easyapp.raml2springbootplugin.config.ExternalConfig.JpaConfig.Table;
@@ -10,10 +14,12 @@ import com.easyapp.raml2springbootplugin.generate.util.ColumnDefinition;
 import com.easyapp.raml2springbootplugin.generate.util.DatabaseUtil;
 import com.easyapp.raml2springbootplugin.generate.util.GeneratorUtil;
 import com.easyapp.raml2springbootplugin.generate.util.TableDefinition;
+import com.easyapp.raml2springbootplugin.generate.util.TransportDefinition;
 
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 
 public class GenerateJPA {
+	private final List<TransportDefinition> transportTypes = new ArrayList<>();
 	private final CodeGenConfig codeGenConfig;
 
 	private void generateEmbeddable(final List<ColumnDefinition> columns, final Table table) throws Exception {
@@ -140,6 +146,49 @@ public class GenerateJPA {
 		generator.writeCode();
 	}
 
+	private String getTransformed(final TableDefinition tableDefinition, final TransportDefinition transportType,
+			final String entityObjectName, final String columnName, final String fieldName) {
+		final String fieldDataType = transportType.getObjectType().properties().stream()
+				.filter(property -> property.name().equals(fieldName))
+				.map(property -> GeneratorUtil.getJavaPrimitiveType(property.type())).findFirst().orElse(null);
+
+		if (fieldDataType == null) {
+			throw new RuntimeException(
+					"Field " + fieldName + " is not a valid RAML field for column mappings for table "
+							+ tableDefinition.getTableName() + " in JPA Config");
+		}
+
+		final String columnDataType = tableDefinition.getColumns().stream()
+				.filter(column -> column.getColumnName().equalsIgnoreCase(columnName))
+				.map(column -> GeneratorUtil.getJavaDataType(column.getDataType())).findFirst().orElse(null);
+
+		final boolean isFieldObjectType = transportType.getObjectType().properties().stream()
+				.filter(property -> property.name().equals(fieldName))
+				.map(property -> !GeneratorUtil.isScalarRAMLType(property.type())).findFirst().orElse(true);
+
+		final List<String> fields = Arrays.asList(columnName.split("\\."));
+
+		final String getFunctionName = entityObjectName + "." + fields.stream().map(field -> {
+			if (field.equals("ARRAY_FIRST_ITEM")) {
+				return "stream().findFirst().orElse(null)";
+			} else {
+				return "get" + GeneratorUtil.getTitleCase(field, "_") + "()";
+			}
+		}).collect(Collectors.joining("."));
+
+		if (columnDataType == null) {
+			final String referenceTableName = GeneratorUtil.getTitleCase(fields.get(0), "_");
+
+			return isFieldObjectType
+					? referenceTableName + "Mapper.get" + referenceTableName + "Transport(" + getFunctionName + ")"
+					: getFunctionName;
+		} else if (columnDataType.equals(fieldDataType)) {
+			return entityObjectName + ".get" + GeneratorUtil.getTitleCase(columnName, "_") + "()";
+		} else {
+			return fieldDataType + ".valueOf(" + getFunctionName + ")";
+		}
+	}
+
 	private void generateEntityMappings(final Table table, final TableDefinition tableDefinition) {
 		final String entityClassName = GeneratorUtil.getTitleCase(table.getTableName(), "_");
 		final String entityObjectName = GeneratorUtil.getCamelCase(entityClassName, "_");
@@ -149,30 +198,43 @@ public class GenerateJPA {
 		generator.addImport(codeGenConfig.getBasePackage() + ".entity." + entityClassName);
 
 		table.getEntityMappings().forEach(entityMapping -> {
-			final StringBuffer method = new StringBuffer();
+			final TransportDefinition transportType = transportTypes.stream()
+					.filter(transport -> transport.getClassName().equals(entityMapping.getRamlType() + "Transport"))
+					.findFirst().orElse(null);
+
+			if (transportType == null) {
+				throw new RuntimeException("Invalid RAML Type " + entityMapping.getRamlType() + " for table "
+						+ table.getTableName() + " in JPA Config");
+			}
+
 			final String transportClassName = Character.toUpperCase(entityMapping.getRamlType().charAt(0))
-					+ entityMapping.getRamlType().substring(0) + "Transport";
-			final String transportObjectName = Character.toLowerCase(entityMapping.getRamlType().charAt(0))
-					+ entityMapping.getRamlType().substring(0);
+					+ entityMapping.getRamlType().substring(1) + "Transport";
+			final String transportObjectName = Character.toLowerCase(transportClassName.charAt(0))
+					+ transportClassName.substring(1);
+			final StringBuffer method = new StringBuffer();
 
 			generator.addImport(codeGenConfig.getBasePackage() + ".transport." + transportClassName);
 
 			method.append(CodeGenerator.INDENT1).append("public static ").append(transportClassName).append(" get")
-					.append(entityMapping.getRamlType()).append("(final ").append(entityClassName).append(" ")
+					.append(entityMapping.getRamlType()).append("Transport(final ").append(entityClassName).append(" ")
 					.append(entityObjectName).append(") {").append(CodeGenerator.NEWLINE);
 			method.append(CodeGenerator.INDENT2).append("final ").append(transportClassName).append(" ")
 					.append(transportObjectName).append(" = new ").append(transportClassName).append("();")
 					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
 
 			entityMapping.getColumnMappings().entrySet().forEach(columnMapping -> {
-				final String functionName = Character.toUpperCase(columnMapping.getValue().charAt(0))
+				final String setFunctionName = "set" + Character.toUpperCase(columnMapping.getValue().charAt(0))
 						+ columnMapping.getValue().substring(1);
+				final String getFunctionName = getTransformed(tableDefinition, transportType, entityObjectName,
+						columnMapping.getKey(), columnMapping.getValue());
 
-				method.append(CodeGenerator.INDENT2).append(transportObjectName).append(".set").append(functionName)
-						.append("(").append(entityObjectName).append(".get")
-						.append(GeneratorUtil.getTitleCase(columnMapping.getKey(), "_")).append("());")
-						.append(CodeGenerator.NEWLINE);
+				method.append(CodeGenerator.INDENT2).append(transportObjectName).append(".").append(setFunctionName)
+						.append("(").append(getFunctionName).append(");").append(CodeGenerator.NEWLINE);
 			});
+
+			if (entityMapping.useForCRUD()) {
+
+			}
 
 			method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("return ")
 					.append(transportObjectName).append(";").append(CodeGenerator.NEWLINE);
@@ -185,7 +247,21 @@ public class GenerateJPA {
 		generator.writeCode();
 	}
 
-	public GenerateJPA(final CodeGenConfig codeGenConfig) {
+	private void getRAMLTypes(final Resource resource) {
+		resource.methods().forEach(method -> {
+			method.responses().stream().filter(response -> response.code().value().startsWith("2"))
+					.forEach(response -> {
+						response.body().stream().filter(body -> !body.type().contains("-"))
+								.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type()))
+								.forEach(body -> GeneratorUtil.addToMap(transportTypes, body, response.code().value()));
+					});
+		});
+
+		resource.resources().forEach(subResource -> getRAMLTypes(subResource));
+	}
+
+	public GenerateJPA(final Api api, final CodeGenConfig codeGenConfig) {
+		api.resources().forEach(resource -> getRAMLTypes(resource));
 		this.codeGenConfig = codeGenConfig;
 	}
 
