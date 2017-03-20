@@ -140,6 +140,51 @@ public class GenerateJPA {
 		generator.writeCode();
 	}
 
+	private void generateEntityMappings(final Table table, final TableDefinition tableDefinition) {
+		final String entityClassName = GeneratorUtil.getTitleCase(table.getTableName(), "_");
+		final String entityObjectName = GeneratorUtil.getCamelCase(entityClassName, "_");
+
+		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "mapper", null, false,
+				entityClassName + "Mapper", null, null, false);
+		generator.addImport(codeGenConfig.getBasePackage() + ".entity." + entityClassName);
+
+		table.getEntityMappings().forEach(entityMapping -> {
+			final StringBuffer method = new StringBuffer();
+			final String transportClassName = Character.toUpperCase(entityMapping.getRamlType().charAt(0))
+					+ entityMapping.getRamlType().substring(0) + "Transport";
+			final String transportObjectName = Character.toLowerCase(entityMapping.getRamlType().charAt(0))
+					+ entityMapping.getRamlType().substring(0);
+
+			generator.addImport(codeGenConfig.getBasePackage() + ".transport." + transportClassName);
+
+			method.append(CodeGenerator.INDENT1).append("public static ").append(transportClassName).append(" get")
+					.append(entityMapping.getRamlType()).append("(final ").append(entityClassName).append(" ")
+					.append(entityObjectName).append(") {").append(CodeGenerator.NEWLINE);
+			method.append(CodeGenerator.INDENT2).append("final ").append(transportClassName).append(" ")
+					.append(transportObjectName).append(" = new ").append(transportClassName).append("();")
+					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
+
+			entityMapping.getColumnMappings().entrySet().forEach(columnMapping -> {
+				final String functionName = Character.toUpperCase(columnMapping.getValue().charAt(0))
+						+ columnMapping.getValue().substring(1);
+
+				method.append(CodeGenerator.INDENT2).append(transportObjectName).append(".set").append(functionName)
+						.append("(").append(entityObjectName).append(".get")
+						.append(GeneratorUtil.getTitleCase(columnMapping.getKey(), "_")).append("());")
+						.append(CodeGenerator.NEWLINE);
+			});
+
+			method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("return ")
+					.append(transportObjectName).append(";").append(CodeGenerator.NEWLINE);
+
+			method.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+
+			generator.addCodeBlock(method.toString());
+		});
+
+		generator.writeCode();
+	}
+
 	public GenerateJPA(final CodeGenConfig codeGenConfig) {
 		this.codeGenConfig = codeGenConfig;
 	}
@@ -167,6 +212,10 @@ public class GenerateJPA {
 			}
 
 			generateRepository(entityClassName, entityKeyClassName);
+
+			if (table.getEntityMappings() != null && !table.getEntityMappings().isEmpty()) {
+				generateEntityMappings(table, tableDefinition);
+			}
 		}
 	}
 }

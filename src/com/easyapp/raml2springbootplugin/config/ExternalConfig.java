@@ -245,6 +245,7 @@ public class ExternalConfig {
 
 			public static class EntityMapping {
 				private String ramlType;
+				private boolean useForCRUD = false;
 				private ColumnMappings columnMappings;
 
 				public static class ColumnMappings {
@@ -267,6 +268,14 @@ public class ExternalConfig {
 
 				public void setRamlType(final String ramlType) {
 					this.ramlType = ramlType;
+				}
+
+				public boolean useForCRUD() {
+					return useForCRUD;
+				}
+
+				public void setUseForCRUD(final boolean useForCRUD) {
+					this.useForCRUD = useForCRUD;
 				}
 
 				public Map<String, String> getColumnMappings() {
@@ -358,9 +367,14 @@ public class ExternalConfig {
 				}
 
 				if (entityMappings != null && !entityMappings.isEmpty()) {
-					return entityMappings.stream()
-							.map(entityMapping -> entityMapping.getConfigError(tableName, relationships))
-							.filter(configError -> configError != null).findAny().orElse(null);
+					if (entityMappings.stream().filter(entityMapping -> entityMapping.useForCRUD()).count() > 1) {
+						return "More than one Entity Mapping cannot be used for CRUD for table " + tableName
+								+ " in JPA Config";
+					} else {
+						return entityMappings.stream()
+								.map(entityMapping -> entityMapping.getConfigError(tableName, relationships))
+								.filter(configError -> configError != null).findAny().orElse(null);
+					}
 				}
 
 				return null;

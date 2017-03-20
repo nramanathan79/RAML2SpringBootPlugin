@@ -4,7 +4,7 @@ generateHealthCheck: true
 
 dockerConfig:
   dockerHost: http://localhost:2375
-  dockerImageName: accounts:v1
+  dockerImageName: countriesandcities:v1
 
 jpaConfig:
   tables:
@@ -15,6 +15,7 @@ jpaConfig:
       whereClause: is_capital is true
     entityMappings:
     - ramlType: Country
+      useForCRUD: true
       columnMappings:
         iso_alpha_2_code: isoAlpha2Code
         iso_alpha_3_code: isoAlpha3Code
@@ -44,10 +45,11 @@ jpaConfig:
         referencedColumnName: iso_alpha_2_code
     entityMappings:
     - ramlType: City
+      useForCRUD: true
       columnMappings:
         city_id: cityId
         city_name: cityName
-        countryCode: country_code
+        country_code: countryCode
         is_capital: isCapital
         latitude: latitude
         longitude: longitude
@@ -56,7 +58,7 @@ jpaConfig:
       columnMappings:
         city_id: cityId
         city_name: cityName
-        countryCode: country_code
+        country_code: countryCode
         is_capital: isCapital
         latitude: latitude
         longitude: longitude
