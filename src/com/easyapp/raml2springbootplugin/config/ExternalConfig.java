@@ -269,8 +269,8 @@ public class ExternalConfig {
 					this.ramlType = ramlType;
 				}
 
-				public ColumnMappings getColumnMappings() {
-					return columnMappings;
+				public Map<String, String> getColumnMappings() {
+					return columnMappings.get();
 				}
 
 				public void setColumnMappings(final ColumnMappings columnMappings) {
@@ -282,12 +282,12 @@ public class ExternalConfig {
 						return "RAML Type missing in entity mapping for table = " + tableName + " in JPA Config";
 					}
 
-					if (columnMappings == null || columnMappings.get().isEmpty()) {
+					if (columnMappings == null || getColumnMappings().isEmpty()) {
 						return "Mappings missing for entity with RAML Type = " + ramlType + " for table = " + tableName
 								+ " in JPA Config";
 					}
 
-					if (!columnMappings.get().keySet().stream().filter(column -> column.contains("."))
+					if (!getColumnMappings().keySet().stream().filter(column -> column.contains("."))
 							.map(referenceColumn -> referenceColumn.substring(0, referenceColumn.indexOf('.')))
 							.allMatch(referenceTable -> relationships != null && relationships.stream().anyMatch(
 									relationship -> relationship.getReferencedTableName().equals(referenceTable)))) {
