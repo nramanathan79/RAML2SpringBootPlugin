@@ -171,7 +171,8 @@ public class GenerateRestController {
 			generator.addImport("org.springframework.web.bind.annotation.RequestMapping");
 			generator.addImport("org.springframework.web.bind.annotation.RequestMethod");
 
-			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
+			final String methodName = method.method()
+					+ GeneratorUtil.getTitleCaseFromCamelCase(resource.displayName().value());
 			final boolean pageType = method.is().stream().anyMatch(trait -> trait.name().equals("Paginated"));
 
 			final String responseType = generator.getJavaType(method.responses().stream()
@@ -215,7 +216,7 @@ public class GenerateRestController {
 		this.api = api;
 		this.codeGenConfig = codeGenConfig;
 		apiTitle = api.title().value().replaceAll(" ", "");
-		apiTitleSvc = Character.toLowerCase(apiTitle.charAt(0)) + apiTitle.substring(1) + "Svc";
+		apiTitleSvc = GeneratorUtil.getCamelCaseFromTitleCase(apiTitle) + "Svc";
 		generator = new CodeGenerator(codeGenConfig, "restcontroller", Arrays.asList("@RestController"), false,
 				apiTitle + "RestController", null, null, false);
 		generator.addImport("org.springframework.web.bind.annotation.RestController");

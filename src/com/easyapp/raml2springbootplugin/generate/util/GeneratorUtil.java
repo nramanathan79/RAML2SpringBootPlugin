@@ -55,6 +55,14 @@ public class GeneratorUtil {
 		return uriParameters;
 	}
 
+	public static String getTitleCaseFromCamelCase(final String text) {
+		return text != null && text.length() > 0 ? Character.toUpperCase(text.charAt(0)) + text.substring(1) : text;
+	}
+
+	public static String getCamelCaseFromTitleCase(final String text) {
+		return text != null && text.length() > 0 ? Character.toLowerCase(text.charAt(0)) + text.substring(1) : text;
+	}
+
 	public static String getTitleCase(final String text, final String delimiter) {
 		String returnValue = "";
 
@@ -66,15 +74,9 @@ public class GeneratorUtil {
 
 		return returnValue;
 	}
-
+	
 	public static String getCamelCase(final String text, final String delimiter) {
-		String returnValue = getTitleCase(text, delimiter);
-
-		if (returnValue.length() > 0) {
-			returnValue = Character.toLowerCase(returnValue.charAt(0)) + returnValue.substring(1);
-		}
-
-		return returnValue;
+		return getCamelCaseFromTitleCase(getTitleCase(text, delimiter));
 	}
 
 	public static void validateAndUpdateMavenDependency(final CodeGenConfig codeGenConfig) throws Exception {
@@ -96,7 +98,7 @@ public class GeneratorUtil {
 	}
 
 	public static void addMavenDependency(final CodeGenConfig codeGenConfig, final String groupId,
-			final String artifactId, final String version) throws Exception {
+			final String artifactId, final String version, final String scope) throws Exception {
 		final MavenXpp3Reader mavenReader = new MavenXpp3Reader();
 		final Model pomModel = mavenReader.read(new FileReader(codeGenConfig.getPomFilePath()));
 
@@ -110,6 +112,10 @@ public class GeneratorUtil {
 
 			if (version != null) {
 				dependency.setVersion(version);
+			}
+
+			if (scope != null) {
+				dependency.setScope(scope);
 			}
 
 			pomModel.addDependency(dependency);

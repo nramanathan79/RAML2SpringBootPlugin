@@ -26,7 +26,7 @@ public class RAML2SpringBoot {
 
 		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
 			GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-actuator",
-					null);
+					null, null);
 		}
 
 		if (codeGenConfig.getExternalConfig().dockerize()) {

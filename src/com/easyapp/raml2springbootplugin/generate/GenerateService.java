@@ -22,8 +22,10 @@ public class GenerateService {
 			return "";
 		} else {
 			return uriParameters.stream()
-					.map(uriParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
-							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + GeneratorUtil.getMemberName(uriParam))
+					.map(uriParam -> "final "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(uriParam),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
+							+ " " + GeneratorUtil.getMemberName(uriParam))
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -33,8 +35,10 @@ public class GenerateService {
 			return "";
 		} else {
 			return method.queryParameters().stream()
-					.map(queryParam -> "final " + generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
-							CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false) + " " + GeneratorUtil.getMemberName(queryParam))
+					.map(queryParam -> "final "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(queryParam),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
+							+ " " + GeneratorUtil.getMemberName(queryParam))
 					.collect(Collectors.joining(", "));
 		}
 	}
@@ -75,7 +79,8 @@ public class GenerateService {
 					.map(response -> GeneratorUtil.getMemberType(response.body().get(0))).findFirst().orElse("string"),
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
-			final String methodName = method.method() + GeneratorUtil.getTitleCase(resource.displayName().value(), " ");
+			final String methodName = method.method()
+					+ GeneratorUtil.getTitleCaseFromCamelCase(resource.displayName().value());
 
 			methods.append(CodeGenerator.INDENT1).append("public ").append(responseType).append(" ").append(methodName)
 					.append("(").append(getMethodParameters(method)).append(") throws Exception {")

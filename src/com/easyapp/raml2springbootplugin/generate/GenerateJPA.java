@@ -131,7 +131,7 @@ public class GenerateJPA {
 		generator.addImport("org.springframework.stereotype.Repository");
 		generator.addImport("org.springframework.data.jpa.repository.JpaRepository");
 		GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot", "spring-boot-starter-data-jpa",
-				null);
+				null, null);
 
 		if (entityKeyClassName.endsWith("Date") || entityKeyClassName.endsWith("Time")) {
 			generator.addImport("java.time." + entityKeyClassName);
@@ -146,8 +146,9 @@ public class GenerateJPA {
 		generator.writeCode();
 	}
 
-	private String getTransformed(final TableDefinition tableDefinition, final TransportDefinition transportType,
-			final String entityObjectName, final String columnName, final String fieldName) {
+	private String getTransformedTransport(final TableDefinition tableDefinition,
+			final TransportDefinition transportType, final String entityObjectName, final String columnName,
+			final String fieldName) {
 		final String fieldDataType = transportType.getObjectType().properties().stream()
 				.filter(property -> property.name().equals(fieldName))
 				.map(property -> GeneratorUtil.getJavaPrimitiveType(property.type())).findFirst().orElse(null);
@@ -189,6 +190,31 @@ public class GenerateJPA {
 		}
 	}
 
+	private String getTransformedEntity(final TableDefinition tableDefinition, final TransportDefinition transportType,
+			final String columnName, final String fieldName) {
+		final String fieldDataType = transportType.getObjectType().properties().stream()
+				.filter(property -> property.name().equals(fieldName))
+				.map(property -> GeneratorUtil.getJavaPrimitiveType(property.type())).findFirst().orElse(null);
+
+		final String columnDataType = tableDefinition.getColumns().stream()
+				.filter(column -> column.getColumnName().equalsIgnoreCase(columnName))
+				.map(column -> GeneratorUtil.getJavaDataType(column.getDataType())).findFirst().orElse(null);
+
+		if (fieldDataType == null || columnDataType == null) {
+			throw new RuntimeException("Field " + fieldName + " OR Column " + columnName
+					+ " is not a valid RAML field for column mappings for table " + tableDefinition.getTableName()
+					+ " in JPA Config");
+		}
+
+		final String getFunctionName = "get" + GeneratorUtil.getTitleCase(columnName, "_") + "()";
+
+		if (columnDataType.equals(fieldDataType)) {
+			return getFunctionName;
+		} else {
+			return columnDataType + ".valueOf(" + getFunctionName + ")";
+		}
+	}
+
 	private void generateEntityMappings(final Table table, final TableDefinition tableDefinition) {
 		final String entityClassName = GeneratorUtil.getTitleCase(table.getTableName(), "_");
 		final String entityObjectName = GeneratorUtil.getCamelCase(entityClassName, "_");
@@ -207,39 +233,59 @@ public class GenerateJPA {
 						+ table.getTableName() + " in JPA Config");
 			}
 
-			final String transportClassName = Character.toUpperCase(entityMapping.getRamlType().charAt(0))
-					+ entityMapping.getRamlType().substring(1) + "Transport";
-			final String transportObjectName = Character.toLowerCase(transportClassName.charAt(0))
-					+ transportClassName.substring(1);
+			final String transportClassName = GeneratorUtil.getTitleCaseFromCamelCase(entityMapping.getRamlType())
+					+ "Transport";
+			final String transportObjectName = GeneratorUtil.getCamelCaseFromTitleCase(transportClassName);
 			final StringBuffer method = new StringBuffer();
 
 			generator.addImport(codeGenConfig.getBasePackage() + ".transport." + transportClassName);
 
 			method.append(CodeGenerator.INDENT1).append("public static ").append(transportClassName).append(" get")
-					.append(entityMapping.getRamlType()).append("Transport(final ").append(entityClassName).append(" ")
+					.append(transportClassName).append("(final ").append(entityClassName).append(" ")
 					.append(entityObjectName).append(") {").append(CodeGenerator.NEWLINE);
 			method.append(CodeGenerator.INDENT2).append("final ").append(transportClassName).append(" ")
 					.append(transportObjectName).append(" = new ").append(transportClassName).append("();")
 					.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
 
 			entityMapping.getColumnMappings().entrySet().forEach(columnMapping -> {
-				final String setFunctionName = "set" + Character.toUpperCase(columnMapping.getValue().charAt(0))
-						+ columnMapping.getValue().substring(1);
-				final String getFunctionName = getTransformed(tableDefinition, transportType, entityObjectName,
+				final String setFunctionName = "set"
+						+ GeneratorUtil.getTitleCaseFromCamelCase(columnMapping.getValue());
+				final String getFunctionName = getTransformedTransport(tableDefinition, transportType, entityObjectName,
 						columnMapping.getKey(), columnMapping.getValue());
 
 				method.append(CodeGenerator.INDENT2).append(transportObjectName).append(".").append(setFunctionName)
 						.append("(").append(getFunctionName).append(");").append(CodeGenerator.NEWLINE);
 			});
 
-			if (entityMapping.useForCRUD()) {
-
-			}
-
 			method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("return ")
 					.append(transportObjectName).append(";").append(CodeGenerator.NEWLINE);
 
 			method.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+
+			if (entityMapping.useForCRUD()) {
+				method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("public static ")
+						.append(entityClassName).append(" get").append(entityClassName).append("Entity(final ")
+						.append(transportClassName).append(" ").append(transportObjectName).append(") {")
+						.append(CodeGenerator.NEWLINE);
+				method.append(CodeGenerator.INDENT2).append("final ").append(entityClassName).append(" ")
+						.append(entityObjectName).append(" = new ").append(entityClassName).append("();")
+						.append(CodeGenerator.NEWLINE).append(CodeGenerator.NEWLINE);
+
+				entityMapping.getColumnMappings().entrySet().forEach(columnMapping -> {
+					final String setFunctionName = "set" + GeneratorUtil.getTitleCase(columnMapping.getKey(), "_");
+					final String getFunctionName = getTransformedEntity(tableDefinition, transportType,
+							columnMapping.getKey(), columnMapping.getValue());
+
+					method.append(CodeGenerator.INDENT2).append(entityObjectName).append(".").append(setFunctionName)
+							.append("(").append(transportObjectName).append(".").append(getFunctionName).append(");")
+							.append(CodeGenerator.NEWLINE);
+				});
+
+				method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("return ")
+						.append(entityObjectName).append(";").append(CodeGenerator.NEWLINE);
+
+				method.append(CodeGenerator.INDENT1).append("}").append(CodeGenerator.NEWLINE);
+			}
 
 			generator.addCodeBlock(method.toString());
 		});

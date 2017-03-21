@@ -53,7 +53,7 @@ public class CodeGenerator {
 			if (strippedFieldType.contains("Page")) {
 				try {
 					GeneratorUtil.addMavenDependency(codeGenConfig, "org.springframework.boot",
-							"spring-boot-starter-data-jpa", null);
+							"spring-boot-starter-data-jpa", null, null);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
@@ -198,7 +198,7 @@ public class CodeGenerator {
 
 			final String memberName = GeneratorUtil.getMemberName(member);
 			final String memberJavaType = getJavaType(GeneratorUtil.getMemberType(member), transportPackageName, false);
-			final String functionName = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
+			final String functionName = GeneratorUtil.getTitleCaseFromCamelCase(memberName);
 
 			methods.append(INDENT1).append("public ").append(memberJavaType).append(" get").append(functionName)
 					.append("() {").append(NEWLINE);
@@ -365,7 +365,7 @@ public class CodeGenerator {
 				addImport("javax.persistence.FetchType");
 				addImport("javax.persistence.CascadeType");
 
-				final String memberTitleCase = Character.toUpperCase(memberName.charAt(0)) + memberName.substring(1);
+				final String memberTitleCase = GeneratorUtil.getTitleCaseFromCamelCase(memberName);
 
 				methods.append(NEWLINE).append(INDENT1).append("public ").append(memberType).append(" get")
 						.append(memberTitleCase).append("() {").append(NEWLINE);

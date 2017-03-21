@@ -161,8 +161,8 @@ public class GenerateTests {
 					CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, pageType);
 
 			method.responses().stream().forEach(response -> {
-				final String methodName = "test"
-						+ GeneratorUtil.getTitleCase(method.method() + " " + resource.displayName().value(), " ")
+				final String methodName = "test" + GeneratorUtil.getTitleCaseFromCamelCase(method.method())
+						+ GeneratorUtil.getTitleCaseFromCamelCase(resource.displayName().value())
 						+ response.code().value();
 
 				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT1).append("@Test")
