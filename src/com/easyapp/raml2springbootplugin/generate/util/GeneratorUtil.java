@@ -159,8 +159,8 @@ public class GeneratorUtil {
 			return "OffsetDateTime";
 		} else if ("boolean".equals(strippedFieldType)) {
 			return "Boolean";
-		} else if ("null".equals(strippedFieldType)) {
-			return "void";
+		} else if ("nil".equals(strippedFieldType)) {
+			return "Void";
 		} else if (strippedFieldType.contains("-")) {
 			return strippedFieldType.substring(strippedFieldType.lastIndexOf('-') + 1);
 		} else {

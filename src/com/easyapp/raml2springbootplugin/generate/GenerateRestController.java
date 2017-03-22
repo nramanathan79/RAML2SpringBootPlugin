@@ -198,9 +198,16 @@ public class GenerateRestController {
 
 			generator.addImport("org.springframework.http.ResponseEntity");
 
-			methods.append(CodeGenerator.INDENT2).append("return new ResponseEntity<>(").append(apiTitleSvc).append(".")
-					.append(methodName).append("(").append(getMethodVariables(method)).append("), HttpStatus.OK);")
-					.append(CodeGenerator.NEWLINE);
+			if (responseType.equals("Void")) {
+				methods.append(CodeGenerator.INDENT2).append(apiTitleSvc).append(".").append(methodName).append("(")
+						.append(getMethodVariables(method)).append(");").append(CodeGenerator.NEWLINE);
+				methods.append(CodeGenerator.INDENT2).append("return new ResponseEntity<>(HttpStatus.OK);")
+						.append(CodeGenerator.NEWLINE);
+			} else {
+				methods.append(CodeGenerator.INDENT2).append("return new ResponseEntity<>(").append(apiTitleSvc)
+						.append(".").append(methodName).append("(").append(getMethodVariables(method))
+						.append("), HttpStatus.OK);").append(CodeGenerator.NEWLINE);
+			}
 
 			generator.addImport("org.springframework.http.HttpStatus");
 

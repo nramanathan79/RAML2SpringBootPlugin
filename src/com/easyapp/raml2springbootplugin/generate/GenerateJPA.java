@@ -191,7 +191,7 @@ public class GenerateJPA {
 	}
 
 	private String getTransformedEntity(final TableDefinition tableDefinition, final TransportDefinition transportType,
-			final String columnName, final String fieldName) {
+			final String transportObjectName, final String columnName, final String fieldName) {
 		final String fieldDataType = transportType.getObjectType().properties().stream()
 				.filter(property -> property.name().equals(fieldName))
 				.map(property -> GeneratorUtil.getJavaPrimitiveType(property.type())).findFirst().orElse(null);
@@ -206,7 +206,8 @@ public class GenerateJPA {
 					+ " in JPA Config");
 		}
 
-		final String getFunctionName = "get" + GeneratorUtil.getTitleCase(columnName, "_") + "()";
+		final String getFunctionName = transportObjectName + ".get" + GeneratorUtil.getTitleCase(columnName, "_")
+				+ "()";
 
 		if (columnDataType.equals(fieldDataType)) {
 			return getFunctionName;
@@ -274,11 +275,10 @@ public class GenerateJPA {
 				entityMapping.getColumnMappings().entrySet().forEach(columnMapping -> {
 					final String setFunctionName = "set" + GeneratorUtil.getTitleCase(columnMapping.getKey(), "_");
 					final String getFunctionName = getTransformedEntity(tableDefinition, transportType,
-							columnMapping.getKey(), columnMapping.getValue());
+							transportObjectName, columnMapping.getKey(), columnMapping.getValue());
 
 					method.append(CodeGenerator.INDENT2).append(entityObjectName).append(".").append(setFunctionName)
-							.append("(").append(transportObjectName).append(".").append(getFunctionName).append(");")
-							.append(CodeGenerator.NEWLINE);
+							.append("(").append(getFunctionName).append(");").append(CodeGenerator.NEWLINE);
 				});
 
 				method.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("return ")
