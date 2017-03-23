@@ -228,6 +228,7 @@ public class GeneratorUtil {
 			attributeConverterFileWriter.write(line + CodeGenerator.NEWLINE);
 		}
 
+		attributeConverterFileWriter.flush();
 		attributeConverterFileWriter.close();
 		attributeConverterFileReader.close();
 

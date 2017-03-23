@@ -53,6 +53,7 @@ public class GenerateDocker {
 					+ CodeGenerator.NEWLINE);
 		}
 
+		dockerFileWriter.flush();
 		dockerFileWriter.close();
 		dockerFileReader.close();
 
