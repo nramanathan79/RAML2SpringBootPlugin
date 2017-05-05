@@ -70,14 +70,18 @@ public class GenerateTests {
 
 	private Map<String, List<String>> getVariables(final Method method) {
 		final Map<String, List<String>> variables = new HashMap<>();
-		final Map<String, List<String>> pathVariables = new HashMap<>();
-		pathVariables.put("uri", getPathVariables(GeneratorUtil.getURIParameters(method.resource())));
+		final List<String> headerVariables = getPathVariables(GeneratorUtil.getHeaders(method));
+		final List<String> pathVariables = getPathVariables(GeneratorUtil.getURIParameters(method.resource()));
 
 		final Map<String, List<String>> requestParams = new HashMap<>();
 		requestParams.put("query", getRequestParameters(method));
 
-		if (!pathVariables.get("uri").isEmpty()) {
-			variables.putAll(pathVariables);
+		if (!headerVariables.isEmpty()) {
+			variables.put("header", headerVariables);
+		}
+
+		if (!pathVariables.isEmpty()) {
+			variables.put("uri", pathVariables);
 		}
 
 		if (("post").equals(method.method()) || ("put").equals(method.method()) || ("patch").equals(method.method())) {
@@ -148,6 +152,10 @@ public class GenerateTests {
 
 		resource.methods().stream().forEach(method -> {
 			final Map<String, List<String>> methodVariables = getVariables(method);
+			final List<String> headerVariables = !methodVariables.containsKey("header")
+					|| methodVariables.get("header").isEmpty() ? null
+							: methodVariables.get("header").stream().map(variable -> variable.split(" ")[1])
+									.collect(Collectors.toList());
 			final String uriVariables = !methodVariables.containsKey("uri") || methodVariables.get("uri").isEmpty()
 					? null
 					: methodVariables.get("uri").stream().map(variable -> variable.split(" ")[1])
@@ -182,15 +190,35 @@ public class GenerateTests {
 							});
 				}
 
+				if (headerVariables != null) {
+					methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2)
+							.append("final HttpHeaders headers = new HttpHeaders();");
+					generator.addImport("org.springframework.http.HttpHeaders");
+
+					headerVariables.forEach(header -> {
+						methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("headers.set(\"")
+								.append(header).append("\", ").append(header).append(");");
+					});
+
+					methods.append(CodeGenerator.NEWLINE);
+				}
+
 				methods.append(CodeGenerator.NEWLINE).append(CodeGenerator.INDENT2).append("final ResponseEntity<")
 						.append(responseType)
 						.append("> response = restTemplate.exchange(uriBuilder.build().encode().toUriString(), ")
 						.append(getHttpMethod(method.method())).append(", ");
 
-				if (bodyVariable == null) {
+				if (bodyVariable == null && headerVariables == null) {
 					methods.append("null, ");
 				} else {
-					methods.append("new HttpEntity<>(").append(bodyVariable).append("), ");
+					if (headerVariables == null) {
+						methods.append("new HttpEntity<>(").append(bodyVariable).append("), ");
+					} else if (bodyVariable == null) {
+						methods.append("new HttpEntity<>(headers), ");
+					} else {
+						methods.append("new HttpEntity<>(").append(bodyVariable).append(", headers), ");
+					}
+					
 					generator.addImport("org.springframework.http.HttpEntity");
 				}
 

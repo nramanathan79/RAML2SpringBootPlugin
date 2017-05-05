@@ -50,8 +50,13 @@ public class GenerateService {
 
 	private String getMethodParameters(final Method method) {
 		final List<String> variables = new ArrayList<>();
+		final String headerVariables = getPathVariables(GeneratorUtil.getHeaders(method));
 		final String pathVariables = getPathVariables(GeneratorUtil.getURIParameters(method.resource()));
 		final String requestParams = getRequestParameters(method);
+
+		if (!("").equals(headerVariables)) {
+			variables.add(headerVariables);
+		}
 
 		if (!("").equals(pathVariables)) {
 			variables.add(pathVariables);

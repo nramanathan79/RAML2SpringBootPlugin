@@ -48,6 +48,16 @@ public class GeneratorUtil {
 		}
 	}
 
+	public static List<TypeDeclaration> getHeaders(final Method method) {
+		List<TypeDeclaration> headers = new ArrayList<>();
+		
+		if (method != null) {
+			headers.addAll(method.headers());
+		}
+
+		return headers;
+	}
+
 	public static List<TypeDeclaration> getURIParameters(final Resource resource) {
 		List<TypeDeclaration> uriParameters = new ArrayList<>();
 		addURIParameters(resource, uriParameters);

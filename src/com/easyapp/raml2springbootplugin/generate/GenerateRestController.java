@@ -61,6 +61,20 @@ public class GenerateRestController {
 		}
 	}
 
+	private String getHeaderVariables(final List<TypeDeclaration> headers) {
+		if (headers.isEmpty()) {
+			return "";
+		} else {
+			generator.addImport("org.springframework.web.bind.annotation.RequestHeader");
+			return headers.stream()
+					.map(header -> "@RequestHeader(value = \"" + GeneratorUtil.getMemberName(header) + "\") final "
+							+ generator.getJavaType(GeneratorUtil.getMemberType(header),
+									CodeGenerator.DEFAULT_TRANSPORT_PACKAGE, false)
+							+ " " + GeneratorUtil.getMemberName(header))
+					.collect(Collectors.joining(", "));
+		}
+	}
+
 	private String getPathVariables(final List<TypeDeclaration> uriParameters) {
 		if (uriParameters.isEmpty()) {
 			return "";
@@ -119,9 +133,14 @@ public class GenerateRestController {
 
 	private String getMethodParameters(final Method method) {
 		final List<String> variables = new ArrayList<>();
+		final String headerVariables = getHeaderVariables(GeneratorUtil.getHeaders(method));
 		final String pathVariables = getPathVariables(GeneratorUtil.getURIParameters(method.resource()));
 		final String requestBodyVariable = getRequestBodyVariable(method);
 		final String requestParams = getRequestParameters(method);
+
+		if (!("").equals(headerVariables)) {
+			variables.add(headerVariables);
+		}
 
 		if (!("").equals(pathVariables)) {
 			variables.add(pathVariables);
@@ -141,8 +160,15 @@ public class GenerateRestController {
 	private String getMethodVariables(final Method method) {
 		final List<String> variables = new ArrayList<>();
 
+		final String headerVariables = GeneratorUtil.getHeaders(method).stream()
+				.map(GeneratorUtil::getMemberName).collect(Collectors.joining(", "));
+
 		final String pathVariables = GeneratorUtil.getURIParameters(method.resource()).stream()
 				.map(GeneratorUtil::getMemberName).collect(Collectors.joining(", "));
+
+		if (!("").equals(headerVariables)) {
+			variables.add(headerVariables);
+		}
 
 		if (!("").equals(pathVariables)) {
 			variables.add(pathVariables);
