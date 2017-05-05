@@ -8,13 +8,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/guava-16.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-18.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson-annotations-2.2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-annotations-2.4.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-core-2.8.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-coreutils-1.8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.4.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-dataformat-yaml-2.8.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-module-jsonSchema-2.4.4.jar"/>
