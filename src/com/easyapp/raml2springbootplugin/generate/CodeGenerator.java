@@ -45,9 +45,7 @@ public class CodeGenerator {
 
 		if (javaDataType.endsWith("Date") || javaDataType.endsWith("Time")) {
 			addImport("java.time." + javaDataType);
-		}
-
-		if (strippedFieldType.contains("-")) {
+		} else if (strippedFieldType.contains("-")) {
 			addImport(strippedFieldType.replaceAll("-", "."));
 
 			if (strippedFieldType.contains("Page")) {
@@ -58,9 +56,7 @@ public class CodeGenerator {
 					throw new RuntimeException(e);
 				}
 			}
-		}
-
-		if (strippedFieldType.equals(javaDataType)) {
+		} else if (strippedFieldType.equals(javaDataType)) {
 			if (transportPackageName.equals(DEFAULT_TRANSPORT_PACKAGE)) {
 				javaDataType += "Transport";
 			}
