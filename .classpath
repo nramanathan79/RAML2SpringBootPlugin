@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="lib" path="lib/activation-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/annotations-3.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/btf-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/classworlds-1.1-alpha-2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-lang-2.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/guava-16.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-18.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-annotations-2.2.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-annotations-2.4.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-core-2.8.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-coreutils-1.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.2.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-databind-2.4.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jackson-dataformat-yaml-2.8.8.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jackson-module-jsonSchema-2.4.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/joda-time-2.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jopt-simple-4.6.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-schema-core-1.2.5.jar"/>
@@ -35,6 +42,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/postgresql-9.4.1212.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/raml-parser-2-1.0.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7R4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-1.7.14.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/snakeyaml-1.17.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-aop-4.3.8.RELEASE.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/spring-beans-4.3.8.RELEASE.jar"/>
