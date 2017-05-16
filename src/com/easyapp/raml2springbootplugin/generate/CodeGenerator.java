@@ -188,41 +188,10 @@ public class CodeGenerator {
 		});
 
 		codeBlocks.add(fields.toString());
-
-		members.stream().sorted(byName).forEach(member -> {
-			final StringBuffer methods = new StringBuffer();
-
-			final String memberName = GeneratorUtil.getMemberName(member);
-			final String memberJavaType = getJavaType(GeneratorUtil.getMemberType(member), transportPackageName, false);
-			final String functionName = GeneratorUtil.getTitleCaseFromCamelCase(memberName);
-
-			methods.append(INDENT1).append("public ").append(memberJavaType).append(" get").append(functionName)
-					.append("() {").append(NEWLINE);
-			methods.append(INDENT2).append("return ").append(memberName).append(";").append(NEWLINE);
-			methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
-
-			methods.append(INDENT1).append("public void set").append(functionName).append("(final ")
-					.append(memberJavaType).append(" ").append(memberName).append(") {").append(NEWLINE);
-			methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
-					.append(NEWLINE);
-			methods.append(INDENT1).append("}").append(NEWLINE);
-
-			if (memberJavaType.startsWith("List<")) {
-				methods.append(NEWLINE).append(INDENT1).append("public void add").append(functionName).append("(final ")
-						.append(memberJavaType.substring(5, memberJavaType.length() - 1)).append(" ").append(memberName)
-						.append(") {").append(NEWLINE);
-				methods.append(INDENT2).append("this.").append(memberName).append(".add(").append(memberName)
-						.append(");").append(NEWLINE);
-				methods.append(INDENT1).append("}").append(NEWLINE);
-			}
-
-			codeBlocks.add(methods.toString());
-		});
 	}
 
 	public void addMembers(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final StringBuffer fields = new StringBuffer();
-		final StringBuffer methods = new StringBuffer();
 
 		if (columns != null) {
 			addImport("javax.persistence.Column");
@@ -230,7 +199,6 @@ public class CodeGenerator {
 			columns.forEach(column -> {
 				final String memberName = GeneratorUtil.getCamelCase(column.getColumnName(), "_");
 				final String memberType = getJavaDataType(column.getDataType(), table.getTableName());
-				final String memberTitleCase = GeneratorUtil.getTitleCase(column.getColumnName(), "_");
 
 				if (column.isInPrimaryKey()) {
 					if (column.getDataType() == JDBCType.JAVA_OBJECT) {
@@ -261,17 +229,6 @@ public class CodeGenerator {
 
 				fields.append(NEWLINE).append(INDENT1).append("private ").append(memberType).append(" ")
 						.append(memberName).append(";").append(NEWLINE);
-
-				methods.append(NEWLINE).append(INDENT1).append("public ").append(memberType).append(" get")
-						.append(memberTitleCase).append("() {").append(NEWLINE);
-				methods.append(INDENT2).append("return ").append(memberName).append(";").append(NEWLINE);
-				methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
-
-				methods.append(INDENT1).append("public void set").append(memberTitleCase).append("(final ")
-						.append(memberType).append(" ").append(memberName).append(") {").append(NEWLINE);
-				methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
-						.append(NEWLINE);
-				methods.append(INDENT1).append("}").append(NEWLINE);
 			});
 		}
 
@@ -360,23 +317,10 @@ public class CodeGenerator {
 				addImport("javax.persistence." + relationship.getRelationshipType());
 				addImport("javax.persistence.FetchType");
 				addImport("javax.persistence.CascadeType");
-
-				final String memberTitleCase = GeneratorUtil.getTitleCaseFromCamelCase(memberName);
-
-				methods.append(NEWLINE).append(INDENT1).append("public ").append(memberType).append(" get")
-						.append(memberTitleCase).append("() {").append(NEWLINE);
-				methods.append(INDENT2).append("return ").append(memberName).append(";").append(NEWLINE);
-				methods.append(INDENT1).append("}").append(NEWLINE).append(NEWLINE);
-
-				methods.append(INDENT1).append("public void set").append(memberTitleCase).append("(final ")
-						.append(memberType).append(" ").append(memberName).append(") {").append(NEWLINE);
-				methods.append(INDENT2).append("this.").append(memberName).append(" = ").append(memberName).append(";")
-						.append(NEWLINE);
-				methods.append(INDENT1).append("}").append(NEWLINE);
 			});
 		}
 
-		codeBlocks.add(fields.toString() + methods.toString());
+		codeBlocks.add(fields.toString());
 	}
 
 	public void addCodeBlock(final String block) {

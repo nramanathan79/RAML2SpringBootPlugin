@@ -112,11 +112,12 @@ public class GenerateJPA {
 
 	private void generateEntity(final List<ColumnDefinition> columns, final Table table) throws Exception {
 		final CodeGenerator generator = new CodeGenerator(codeGenConfig, "entity",
-				Arrays.asList("@Entity", "@Table(name = \"" + table.getTableName().toUpperCase() + "\")"), false,
+				Arrays.asList("@Entity", "@Table(name = \"" + table.getTableName().toUpperCase() + "\")", "@Data"), false,
 				GeneratorUtil.getTitleCase(table.getTableName(), "_"), null, Arrays.asList("Serializable"), false);
 
 		generator.addImport("javax.persistence.Entity");
 		generator.addImport("javax.persistence.Table");
+		generator.addImport("lombok.Data");
 		generator.addImport("java.io.Serializable");
 
 		generator.addCodeBlock(CodeGenerator.INDENT1 + "private static final long serialVersionUID = 1L;");

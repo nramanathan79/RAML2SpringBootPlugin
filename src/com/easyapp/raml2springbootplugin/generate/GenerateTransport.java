@@ -19,7 +19,8 @@ public class GenerateTransport {
 	private void getTransportTypes(final Resource resource) {
 		resource.methods().stream().forEach(method -> {
 			method.body().stream().filter(body -> !body.type().contains("-"))
-					.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type())).forEach(body -> GeneratorUtil.addToMap(transportTypes, body, null));
+					.filter(body -> !GeneratorUtil.isScalarRAMLType(body.type()))
+					.forEach(body -> GeneratorUtil.addToMap(transportTypes, body, null));
 
 			method.responses().stream().forEach(response -> {
 				response.body().stream().filter(body -> !body.type().contains("-"))
@@ -33,9 +34,10 @@ public class GenerateTransport {
 
 	private void generateTransport() {
 		transportTypes.forEach(transportType -> {
-			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(), null,
-					false, transportType.getClassName(), transportType.getExtendsFrom(), Arrays.asList("Serializable"),
-					false);
+			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(),
+					Arrays.asList("@Data"), false, transportType.getClassName(), transportType.getExtendsFrom(),
+					Arrays.asList("Serializable"), false);
+			generator.addImport("lombok.Data");
 			generator.addImport("java.io.Serializable");
 
 			final StringBuffer blocks = new StringBuffer();
@@ -53,7 +55,9 @@ public class GenerateTransport {
 		this.codeGenConfig = codeGenConfig;
 	}
 
-	public void create() {
+	public void create() throws Exception {
+		GeneratorUtil.addMavenDependency(codeGenConfig, "org.projectlombok", "lombok", null, "provided");
+
 		api.resources().stream().forEach(resource -> getTransportTypes(resource));
 		generateTransport();
 	}
