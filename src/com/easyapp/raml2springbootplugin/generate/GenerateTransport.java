@@ -34,10 +34,23 @@ public class GenerateTransport {
 
 	private void generateTransport() {
 		transportTypes.forEach(transportType -> {
+			final List<String> annotations = transportType.getExtendsFrom() == null ? Arrays.asList("@Data")
+					: Arrays.asList("@RequiredArgsConstructor", "@Getter", "@Setter", "@ToString(callSuper = true)",
+							"@EqualsAndHashCode(callSuper = true)");
 			final CodeGenerator generator = new CodeGenerator(codeGenConfig, transportType.getPackageName(),
-					Arrays.asList("@Data"), false, transportType.getClassName(), transportType.getExtendsFrom(),
+					annotations, false, transportType.getClassName(), transportType.getExtendsFrom(),
 					Arrays.asList("Serializable"), false);
-			generator.addImport("lombok.Data");
+
+			if (transportType.getExtendsFrom() == null) {
+				generator.addImport("lombok.Data");
+			} else {
+				generator.addImport("lombok.RequiredArgsConstructor");
+				generator.addImport("lombok.Getter");
+				generator.addImport("lombok.Setter");
+				generator.addImport("lombok.ToString");
+				generator.addImport("lombok.EqualsAndHashCode");
+			}
+
 			generator.addImport("java.io.Serializable");
 
 			final StringBuffer blocks = new StringBuffer();
