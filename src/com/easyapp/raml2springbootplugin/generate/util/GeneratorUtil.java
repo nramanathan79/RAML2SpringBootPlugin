@@ -37,6 +37,10 @@ public class GeneratorUtil {
 			uriParameters.addAll(resource.uriParameters());
 		}
 	}
+	
+	public static void initialize() {
+		attributeConvertersCompleted.clear();
+	}
 
 	public static String getRequestBodyVariableName(final Method method) {
 		if (method.body().isEmpty()) {

@@ -22,6 +22,7 @@ public class RAML2SpringBoot {
 
 		final Api api = ramlModelResult.getApiV10();
 
+		GeneratorUtil.initialize();
 		GeneratorUtil.validateAndUpdateMavenDependency(codeGenConfig);
 
 		if (codeGenConfig.getExternalConfig().generateHealthCheck()) {
